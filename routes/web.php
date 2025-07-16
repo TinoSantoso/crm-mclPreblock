@@ -39,6 +39,7 @@ $router->group(['prefix' => 'api/auth'], function () use ($router) {
     $router->post('register', 'AuthController@register');
     $router->post('login', 'AuthController@login');
     $router->post('logout', 'AuthController@logout'); // Client-side token deletion
+    $router->post('store-token', 'AuthController@storeToken'); // Store token in session - removed jwt.auth middleware to avoid circular dependency
 });
 
 // Protected API Routes (requires JWT)
@@ -51,7 +52,7 @@ $router->group(['prefix' => 'api', 'middleware' => 'auth:api'], function () use 
 });
 
 // Preblock routes
-$router->group(['prefix' => 'api', 'middleware' => 'auth:api'], function () use ($router) {
+$router->group(['prefix' => 'api', 'middleware' => ['session.token']], function () use ($router) {
     $router->get('/preblock', 'Backend\PreblockMclController@index');
     $router->get('/preblock-visit', 'Backend\PreblockMclController@showVisit');
     $router->get('/crm-details', 'Backend\PreblockMclController@getAllCrmDetails');

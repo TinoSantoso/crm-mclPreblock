@@ -68,14 +68,29 @@
 
                 const data = await response.json();
                 if (response.ok) {
-                    // Store the JWT token in localStorage
+                    // Store the JWT token in localStorage and sessionStorage
                     localStorage.setItem('jwt_token', data.token);
+                    sessionStorage.setItem('jwt_token', data.token);
                     
                     messageBox.classList.remove('hidden');
                     messageBox.classList.add('bg-green-100', 'text-green-700');
                     messageBox.textContent = data.message || 'Login successful!';
                     
-                    // Redirect to dashboard instead of directly to API endpoint
+                    // Store token in server session before redirecting
+                    try {
+                        await fetch('/api/auth/store-token', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${data.token}`
+                            },
+                            body: JSON.stringify({ token: data.token })
+                        });
+                    } catch (error) {
+                        console.error('Error storing token in session:', error);
+                    }
+                    
+                    // Redirect to dashboard
                     window.location.href = '/dashboard';
                 } else {
                     messageBox.classList.remove('hidden');

@@ -67,6 +67,7 @@ $app->singleton('view.finder', function ($app) {
 
 $app->configure('app');
 $app->configure('view');
+$app->configure('session');
 
 /*
 |--------------------------------------------------------------------------
@@ -86,6 +87,7 @@ $app->configure('view');
 $app->routeMiddleware([
     'auth' => App\Http\Middleware\Authenticate::class,
     'jwt.auth' => \App\Http\Middleware\JwtMiddleware::class,
+    'session.token' => \App\Http\Middleware\SessionTokenMiddleware::class,
 ]);
 
 $app->middleware([

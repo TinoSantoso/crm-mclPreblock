@@ -93,6 +93,35 @@
                 window.location.href = '/login';
                 return;
             }
+            
+            // Store token in sessionStorage for server-side access
+            sessionStorage.setItem('jwt_token', token);
+            
+            // Send token to server to store in session
+            try {
+                const response = await fetch('/api/auth/store-token', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ token: token })
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    console.error('Error storing token in session:', errorData);
+                    showMessage('Error storing token in session. Please try logging in again.', 'error');
+                    localStorage.removeItem('jwt_token');
+                    window.location.href = '/login';
+                    return;
+                }
+                
+                console.log('Token stored in session successfully');
+            } catch (error) {
+                console.error('Error storing token in session:', error);
+                showMessage('Error connecting to server. Please try again later.', 'error');
+            }
             // Fetch user data
             try {
                 const userResponse = await fetch('/api/me', { // Adjust API endpoint as needed
@@ -127,6 +156,18 @@
         // Logout functionality
         document.getElementById('logoutButton').addEventListener('click', function() {
             localStorage.removeItem('jwt_token'); // Remove the token from local storage
+            sessionStorage.removeItem('jwt_token'); // Remove the token from session storage
+            
+            // Also clear the server-side session
+            fetch('/api/auth/logout', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }).catch(error => {
+                console.error('Error during logout:', error);
+            });
+            
             showMessage('You have been logged out successfully.', 'success');
             window.location.href = '/login'; // Redirect to login page
         });
@@ -139,27 +180,33 @@
                 window.location.href = '/login';
                 return;
             }
-
+            
+            // Make sure token is in sessionStorage
+            sessionStorage.setItem('jwt_token', token);
+            
             try {
                 showMessage('Loading Preblock page...', 'info');
                 
-                // Make a fetch request to the preblock endpoint with the JWT token
-                const response = await fetch('/api/preblock', {
-                    method: 'GET',
+                // Send token to server to store in session before redirecting
+                const response = await fetch('/api/auth/store-token', {
+                    method: 'POST',
                     headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Accept': 'text/html,application/xhtml+xml'
-                    }
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ token: token })
                 });
                 
-                if (response.ok) {
-                    // If response is successful, redirect to preblock page
-                    window.location.href = 'api/preblock';
-                } else {
-                    // If there's an error, show the error message
-                    const errorData = await response.json().catch(() => ({ message: 'Failed to load Preblock page' }));
-                    showMessage(errorData.message || 'Failed to load Preblock page', 'error');
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    console.error('Error storing token before redirect:', errorData);
+                    showMessage('Error accessing Preblock. Please try logging in again.', 'error');
+                    return;
                 }
+                
+                // Redirect directly to preblock page
+                // The SessionTokenMiddleware will handle adding the token to the request
+                window.location.href = '/api/preblock';
             } catch (error) {
                 console.error('Error accessing Preblock:', error);
                 showMessage('An error occurred while accessing Preblock.', 'error');

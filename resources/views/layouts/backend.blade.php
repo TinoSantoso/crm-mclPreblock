@@ -45,6 +45,33 @@
         const APP_BASE_URL = {!! json_encode(url('/')) !!};
         const APP_HOST = window.location.host;
         const APP_ORIGIN = window.location.origin;
+        
+        // Check for JWT token and ensure it's in sessionStorage
+        document.addEventListener('DOMContentLoaded', async function() {
+            const token = localStorage.getItem('jwt_token') || sessionStorage.getItem('jwt_token');
+            if (!token) {
+                // If no token, redirect to login page
+                window.location.href = '/login';
+                return;
+            }
+            
+            // Ensure token is in sessionStorage
+            sessionStorage.setItem('jwt_token', token);
+            
+            // Send token to server to store in session if not already done
+            try {
+                await fetch('/api/auth/store-token', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ token: token })
+                });
+            } catch (error) {
+                console.error('Error storing token in session:', error);
+            }
+        });
     </script>
 
 </head>
