@@ -123,7 +123,7 @@
 
 
 {{-- Scripts for this page --}}
-<script src="{!! url('backend/js/preblock_visit.js') !!}"></script>
+<script src="{!! url('asset/js/backend/preblock_visit.js') !!}"></script>
 <script>
     // Utility to store/retrieve active tab in localStorage
     function setActiveTab(tabId) {

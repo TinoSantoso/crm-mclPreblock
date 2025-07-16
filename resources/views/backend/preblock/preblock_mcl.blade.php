@@ -221,8 +221,7 @@
         }
 
         function setGeneratedTransNo() {
-            const baseUrl = window.location.origin;
-            $.getJSON(`${baseUrl}/generate-transno`, function(res) {
+            $.getJSON(`${APP_BASE_URL}/generate-transno`, function(res) {
                 if (res.trans_no) {
                     headerDxForm.option('formData.trans_no', res.trans_no);
                     headerDxForm.repaint();

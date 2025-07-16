@@ -66,6 +66,7 @@
     <div id="messageBox" class="fixed bottom-4 right-4 p-3 rounded-md text-sm shadow-lg hidden" role="alert"></div>
     <script type="text/javascript" language="javascript" src="{!! url('asset/js/devexp/devextreme-license.js')!!}"></script>
     <script>
+        const APP_BASE_URL = {!! json_encode(url('/')) !!};
         // Function to show messages
         function showMessage(message, type = 'info') {
             const messageBox = document.getElementById('messageBox');
@@ -99,7 +100,7 @@
             
             // Send token to server to store in session
             try {
-                const response = await fetch('/api/auth/store-token', {
+                const response = await fetch(`${APP_BASE_URL}/api/auth/store-token`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -124,7 +125,7 @@
             }
             // Fetch user data
             try {
-                const userResponse = await fetch('/api/me', { // Adjust API endpoint as needed
+                const userResponse = await fetch(`${APP_BASE_URL}/api/me`, {
                     method: 'GET',
                     headers: {
                         'Authorization': `Bearer ${token}`,
@@ -155,11 +156,11 @@
 
         // Logout functionality
         document.getElementById('logoutButton').addEventListener('click', function() {
-            localStorage.removeItem('jwt_token'); // Remove the token from local storage
-            sessionStorage.removeItem('jwt_token'); // Remove the token from session storage
+            localStorage.removeItem('jwt_token');
+            sessionStorage.removeItem('jwt_token');
             
             // Also clear the server-side session
-            fetch('/api/auth/logout', {
+            fetch(`${APP_BASE_URL}/api/auth/logout`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -188,7 +189,7 @@
                 showMessage('Loading Preblock page...', 'info');
                 
                 // Send token to server to store in session before redirecting
-                const response = await fetch('/api/auth/store-token', {
+                const response = await fetch(`${APP_BASE_URL}/api/auth/store-token`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

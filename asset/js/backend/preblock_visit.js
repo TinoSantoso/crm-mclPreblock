@@ -88,10 +88,10 @@ async function loadData() {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         
         const response = await res.json();
-        if (!response.data || response.data.length === 0) {
+        if (!response || response.length === 0) {
             throw new Error(response.message || 'No data found for the selected filters.');
         }
-        const data = response.data;
+        const data = response;
         let gridData = data;
 
         // Map month number to month name

@@ -329,7 +329,7 @@ class PreblockMclController extends Controller
             })) {
                 return response()->json([
                     'data' => [],
-                    'message' => 'No visits found.'
+                    'message' => 'No data visits found.'
                 ]);
             }
         } catch (\Exception $e) {

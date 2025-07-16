@@ -17,8 +17,16 @@ class SessionTokenMiddleware
      */
     public function handle($request, Closure $next)
     {
-        // Log the current request path
+        // Enhanced logging for debugging CSRF token issue
         Log::info('SessionTokenMiddleware processing request for path: ' . $request->path());
+        Log::info('Request method: ' . $request->method());
+        Log::info('Request has CSRF token: ' . ($request->header('X-CSRF-TOKEN') ? 'Yes' : 'No'));
+        
+        // Log session status
+        Log::info('Session started: ' . ($request->hasSession() ? 'Yes' : 'No'));
+        if ($request->hasSession()) {
+            Log::info('Session ID: ' . $request->session()->getId());
+        }
         
         // Check if the request already has an Authorization header
         if (!$request->headers->has('Authorization')) {

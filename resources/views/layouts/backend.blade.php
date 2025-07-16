@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="Web Application E-Expenses Essity Indonesia">
     <meta name="author" content="Dendy Insan Nugraha">
-    {{-- <meta id="#token" name="csrf-token" content="{!! csrf_token() !!}" /> --}}
+    
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     
     <!-- Tell the browser to be responsive to screen width -->
@@ -42,34 +42,53 @@
     <!-- DevExpress Core -->
     <script type="text/javascript" src="https://cdn3.devexpress.com/jslib/24.1.7/js/dx.all.js"></script>
     <script type="text/javascript">
-        const APP_BASE_URL = {!! json_encode(url('/')) !!};
+        const APP_BASE_URL = {!! json_encode(url('/api')) !!};
         const APP_HOST = window.location.host;
         const APP_ORIGIN = window.location.origin;
         
+        // Global error handler to catch and log all JavaScript errors
+        window.addEventListener('error', function(event) {
+            console.error('Global error caught:', event.error);
+            console.error('Error message:', event.message);
+            console.error('Error source:', event.filename, 'line:', event.lineno, 'col:', event.colno);
+            // Prevent the blank page by not letting errors propagate
+            event.preventDefault();
+        });
+        
         // Check for JWT token and ensure it's in sessionStorage
         document.addEventListener('DOMContentLoaded', async function() {
-            const token = localStorage.getItem('jwt_token') || sessionStorage.getItem('jwt_token');
-            if (!token) {
-                // If no token, redirect to login page
-                window.location.href = '/login';
-                return;
-            }
-            
-            // Ensure token is in sessionStorage
-            sessionStorage.setItem('jwt_token', token);
-            
-            // Send token to server to store in session if not already done
             try {
-                await fetch('/api/auth/store-token', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({ token: token })
-                });
+                const token = localStorage.getItem('jwt_token') || sessionStorage.getItem('jwt_token');
+                
+                if (!token) {
+                    window.location.href = '/login';
+                    return;
+                }
+                
+                // Ensure token is in sessionStorage
+                sessionStorage.setItem('jwt_token', token);
+                
+                // Send token to server to store in session if not already done
+                try {
+                    const response = await fetch('/api/auth/store-token', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ token: token })
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`Server responded with status: ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                } catch (error) {
+                    console.error('Error storing token in session:', error);
+                }
             } catch (error) {
-                console.error('Error storing token in session:', error);
+                console.error('Error in DOMContentLoaded handler:', error);
             }
         });
     </script>

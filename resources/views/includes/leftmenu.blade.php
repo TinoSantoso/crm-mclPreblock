@@ -262,9 +262,33 @@
                                 </ul>
                             </li>
 
+                            <!-- Logout Button -->
+                            <li>
+                                <a href="#" onclick="handleLogout(event)">
+                                    <i class="fa fa-sign-out"></i> <span>Logout</span>
+                                </a>
+                            </li>
 
+                            <script>
+                            function handleLogout(e) {
+                                e.preventDefault();
+                                localStorage.removeItem('jwt_token');
+                                sessionStorage.removeItem('jwt_token');
 
-
+                                fetch(`${APP_BASE_URL}/api/auth/logout`, {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    }
+                                })
+                                .then(() => {
+                                    window.location.href = '/login';
+                                })
+                                .catch(error => {
+                                    console.error('Error during logout:', error);
+                                });
+                            }
+                            </script>
 
                   </ul>
 
