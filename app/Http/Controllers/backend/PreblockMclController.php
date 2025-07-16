@@ -447,7 +447,7 @@ class PreblockMclController extends Controller
      */
     public function exportPdf(Request $request)
     {
-        $empId = $request->user()->employee_id;
+        $transNo = $request->input('trans_no');
         $year = $request->input('year'); 
         $month = $request->input('month');
 
@@ -465,14 +465,14 @@ class PreblockMclController extends Controller
         // Fetch the data
         $query = \App\Models\CrmVisit::with('details')->orderByDesc('created_at');
         if (!empty($empId)) {
-            $query->where('emp_id', $empId);
+            $query->where('trans_no', $transNo);
         }
-        if (!empty($year)) {
+        /* if (!empty($year)) {
             $query->where('year', $year);
         }
         if (!empty($month)) {
             $query->where('month', $month);
-        }
+        } */
         $visits = $query->get();
 
         // Group by visit_date
@@ -573,7 +573,6 @@ class PreblockMclController extends Controller
                 . '<th style="width:' . $colWidthInstitusi . '%; text-align: center;">Account</th>'
                 . '<th style="width:' . $colWidthSpecialty . '%; text-align: center;">Specialty</th>'
                 . '<th style="width:' . $colWidthIndividu . '%; text-align: center;">Contact</th>'
-                . '<th style="width:10%; text-align: center;">Visit Date</th>'
                 . '</tr></thead><tbody>';
             $rowNo = 1;
             foreach ($details as $detail) {
@@ -582,7 +581,6 @@ class PreblockMclController extends Controller
                 . '<td>' . htmlspecialchars($detail->account ?? '') . '</td>'
                 . '<td style="text-align: center;">' . htmlspecialchars($detail->class ?? '') . '</td>'
                 . '<td>' . htmlspecialchars($detail->contact ?? '') . '</td>'
-                . '<td style="text-align: center;">' . htmlspecialchars($visitDate) . '</td>'
                 . '</tr>';
             }
             $html .= '</tbody></table>';

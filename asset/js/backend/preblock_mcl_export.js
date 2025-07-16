@@ -49,34 +49,18 @@ async function exportData() {
     }
 
     try {
-        year = encodeURIComponent(year);
-        month = encodeURIComponent(month);
-        const url = `${APP_BASE_URL}/crm-visits?year=${year}&month=${month}`;
-        
-        const response = await fetch(url, {
-            method: 'GET',
-            headers: {
-                'Accept': 'application/json'
-            }
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+        const headerForm = $("#header-dxform").dxForm("instance");
+        const headerData = headerForm ? headerForm.option("formData") : {};
+        if (!headerData.trans_no) {
+            DevExpress.ui.notify({ message: "No data selected to delete.", width: 400, type: "warning"}, { position: "top right", direction: "down-push" }, 3000);
+            return;
         }
-
-        const data = await response.json();
-        if (!Array.isArray(data)) {
-            throw new Error('Invalid data format received');
-        }
-
-        // Populate empId from data if available
-        const empId = data.length > 0 && data[0]?.emp_id ? data[0].emp_id : '';
 
         // Create and submit form for direct PDF download
         const form = document.createElement('form');
         form.method = 'POST';
         form.action = `${APP_BASE_URL}/crm-visits/export-pdf`;
-        form.target = '_blank'; // Still open in new tab but will directly download
+        form.target = '_blank';
 
         // Use CSRF token if available
         /* const csrfToken = document.querySelector('meta[name="csrf-token"]');
@@ -94,7 +78,7 @@ async function exportData() {
         const params = {
             year: year,
             month: month,
-            emp_id: empId
+            trans_no: headerData.trans_no
         };
 
         Object.entries(params).forEach(([key, value]) => {
