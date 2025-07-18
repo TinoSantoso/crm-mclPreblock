@@ -39,9 +39,15 @@
             <h2 class="text-2xl font-semibold text-gray-800 mb-6">Welcome to Your Dashboard!</h2>
             <p class="text-gray-700 mb-4">This is a protected area. You can view your data here.</p>
 
-            <div class="mb-6">
+            <div class="mb-6 flex gap-4">
                 <button id="preblockButton" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md transition duration-150 ease-in-out font-semibold shadow-sm">
                     Go to Preblock
+                </button>
+                <button id="preblockVisitButton" class="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-md transition duration-150 ease-in-out font-semibold shadow-sm">
+                    Preblock Visit
+                </button>
+                <button id="reportCustomerButton" class="bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded-md transition duration-150 ease-in-out font-semibold shadow-sm">
+                    Report Customer
                 </button>
             </div>
 
@@ -91,12 +97,9 @@
             const token = localStorage.getItem('jwt_token');
             if (!token) {
                 // If no token, redirect to login page
-                window.location.href = '/login';
+                window.location.href = `${APP_BASE_URL}/login`;
                 return;
             }
-            
-            // Store token in sessionStorage for server-side access
-            sessionStorage.setItem('jwt_token', token);
             
             // Send token to server to store in session
             try {
@@ -114,7 +117,7 @@
                     console.error('Error storing token in session:', errorData);
                     showMessage('Error storing token in session. Please try logging in again.', 'error');
                     localStorage.removeItem('jwt_token');
-                    window.location.href = '/login';
+                    window.location.href = `${APP_BASE_URL}/login`;
                     return;
                 }
                 
@@ -142,13 +145,13 @@
                     const errorData = await userResponse.json();
                     showMessage(errorData.message || 'Failed to fetch user data. Please log in again.', 'error');
                     localStorage.removeItem('jwt_token'); // Clear invalid token
-                    window.location.href = '/login';
+                    window.location.href = `${APP_BASE_URL}/login`;
                 }
             } catch (error) {
                 console.error('Error fetching user data:', error);
                 showMessage('An error occurred while fetching user data.', 'error');
                 localStorage.removeItem('jwt_token');
-                window.location.href = '/login';
+                window.location.href = `${APP_BASE_URL}/login`;
             }
 
             console.log("Dashboard loaded successfully");
@@ -170,25 +173,21 @@
             });
             
             showMessage('You have been logged out successfully.', 'success');
-            window.location.href = '/login'; // Redirect to login page
+            window.location.href = `${APP_BASE_URL}/login`; // Redirect to login page
         });
 
-        // Preblock button functionality
-        document.getElementById('preblockButton').addEventListener('click', async function() {
+        // Helper function for token validation and storage
+        async function handleTokenAndRedirect(destination, actionName) {
             const token = localStorage.getItem('jwt_token');
             if (!token) {
                 showMessage('You need to log in first.', 'error');
-                window.location.href = '/login';
-                return;
+                window.location.href = `${APP_BASE_URL}/login`;
+                return false;
             }
-            
-            // Make sure token is in sessionStorage
-            sessionStorage.setItem('jwt_token', token);
-            
+
             try {
-                showMessage('Loading Preblock page...', 'info');
+                showMessage(`Loading ${actionName} page...`, 'info');
                 
-                // Send token to server to store in session before redirecting
                 const response = await fetch(`${APP_BASE_URL}/api/auth/store-token`, {
                     method: 'POST',
                     headers: {
@@ -200,18 +199,33 @@
                 
                 if (!response.ok) {
                     const errorData = await response.json();
-                    console.error('Error storing token before redirect:', errorData);
-                    showMessage('Error accessing Preblock. Please try logging in again.', 'error');
-                    return;
+                    console.error(`Error storing token before ${actionName} redirect:`, errorData);
+                    showMessage(`Error accessing ${actionName}. Please try logging in again.`, 'error');
+                    return false;
                 }
                 
-                // Redirect directly to preblock page
-                // The SessionTokenMiddleware will handle adding the token to the request
-                window.location.href = '/api/preblock';
+                window.location.href = destination;
+                return true;
             } catch (error) {
-                console.error('Error accessing Preblock:', error);
-                showMessage('An error occurred while accessing Preblock.', 'error');
+                console.error(`Error accessing ${actionName}:`, error);
+                showMessage(`An error occurred while accessing ${actionName}.`, 'error');
+                return false;
             }
+        }
+
+        // Preblock button handler
+        document.getElementById('preblockButton').addEventListener('click', () => {
+            handleTokenAndRedirect(`${APP_BASE_URL}/api/preblock`, 'Preblock');
+        });
+
+        // Preblock Visit button handler
+        document.getElementById('preblockVisitButton').addEventListener('click', () => {
+            handleTokenAndRedirect(`${APP_BASE_URL}/api/preblock-visit`, 'Preblock Visit');
+        });
+
+        // Report Customer button handler
+        document.getElementById('reportCustomerButton').addEventListener('click', () => {
+            handleTokenAndRedirect(`${APP_BASE_URL}/api/report-customer`, 'Report Customer');
         });
     </script>
 </body>

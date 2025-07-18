@@ -45,6 +45,7 @@
     </div>
 
     <script>
+        const APP_BASE_URL = {!! json_encode(url('/')) !!};
         document.getElementById('loginForm').addEventListener('submit', async function(event) {
             event.preventDefault(); // Prevent default form submission
 
@@ -57,7 +58,7 @@
             messageBox.classList.remove('bg-red-100', 'text-red-700', 'bg-green-100', 'text-green-700');
 
             try {
-                const response = await fetch('/api/auth/login', {
+                const response = await fetch(`${APP_BASE_URL}/api/auth/login`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -78,7 +79,7 @@
                     
                     // Store token in server session before redirecting
                     try {
-                        await fetch('/api/auth/store-token', {
+                        await fetch(`${APP_BASE_URL}/api/auth/store-token`, {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',

@@ -9,7 +9,7 @@ $(function() {
         items: [
             {
                 itemType: "group",
-                colCount: 2,
+                colCount: 3,
                 items: [
                     {
                         dataField: "period",
@@ -21,6 +21,7 @@ $(function() {
                             pickerType: "calendar",
                             useMaskBehavior: true,
                             openOnFieldClick: true,
+                            width: 'auto',
                             calendarOptions: {
                                 maxZoomLevel: "year",
                                 minZoomLevel: "year"
@@ -36,6 +37,7 @@ $(function() {
                             type: "date",
                             useMaskBehavior: true,
                             openOnFieldClick: true,
+                            width: 'auto',
                         },
                         isRequired: true
                     }
@@ -88,12 +90,12 @@ async function loadData() {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         
         const response = await res.json();
-        if (!response || response.length === 0) {
+        if (!response.data || response.data.length === 0) {
             throw new Error(response.message || 'No data found for the selected filters.');
         }
-        const data = response;
+        const data = response.data;
         let gridData = data;
-
+        
         // Map month number to month name
         const monthNames = [
             "January", "February", "March", "April", "May", "June",

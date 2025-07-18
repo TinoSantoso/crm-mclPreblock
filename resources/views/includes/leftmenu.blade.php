@@ -20,7 +20,7 @@
                 <ul class="sidebar-menu" data-widget="tree">
 
                         <li class="header">Main Navigation</li>
-                        <li class="active treeview menu-open"><a href="{!! url('/home_user') !!}"><i class="fa fa-home"></i> <span>Home</span></a></li>
+                        <li class="active treeview menu-open"><a href="{!! url('/dashboard') !!}"><i class="fa fa-home"></i> <span>Home</span></a></li>
                         <li class="treeview">
                         <a href="#">
                                 <i class="fa fa-dashboard"></i> 

@@ -345,7 +345,7 @@ class PreblockMclController extends Controller
             return $visit->details->isNotEmpty();
         });
 
-        return response()->json($visits);
+        return response()->json(['data' => $visits]);
     }
 
 
@@ -447,162 +447,174 @@ class PreblockMclController extends Controller
      */
     public function exportPdf(Request $request)
     {
-        $transNo = $request->input('trans_no');
-        $year = $request->input('year'); 
-        $month = $request->input('month');
+        try {
+            $transNo = $request->input('trans_no');
+            $year = $request->input('year'); 
+            $month = $request->input('month');
 
-        // configuration from environment variables with defaults
-        $fontSizeTable = env('PDF_FONT_SIZE_TABLE');
-        $fontSizeTitle = env('PDF_FONT_SIZE_TITLE');
-        $fontSizeSubtitle = env('PDF_FONT_SIZE_SUBTITLE');
-        $colWidthNo = env('PDF_COL_WIDTH_NO');
-        $colWidthInstitusi = env('PDF_COL_WIDTH_INSTITUSI');
-        $colWidthSpecialty = env('PDF_COL_WIDTH_SPECIALTY');
-        $colWidthIndividu = env('PDF_COL_WIDTH_INDIVIDU');
-        $visitDateTopMargin = env('PDF_VISIT_DATE_TOP_MARGIN');
-        $tableTopMargin = env('PDF_TABLE_TOP_MARGIN');
+            // configuration from environment variables with defaults
+            $fontSizeTable = env('PDF_FONT_SIZE_TABLE');
+            $fontSizeTitle = env('PDF_FONT_SIZE_TITLE');
+            $fontSizeSubtitle = env('PDF_FONT_SIZE_SUBTITLE');
+            $colWidthNo = env('PDF_COL_WIDTH_NO');
+            $colWidthInstitusi = env('PDF_COL_WIDTH_INSTITUSI');
+            $colWidthSpecialty = env('PDF_COL_WIDTH_SPECIALTY');
+            $colWidthIndividu = env('PDF_COL_WIDTH_INDIVIDU');
+            $visitDateTopMargin = env('PDF_VISIT_DATE_TOP_MARGIN');
+            $tableTopMargin = env('PDF_TABLE_TOP_MARGIN');
 
-        // Fetch the data
-        $query = \App\Models\CrmVisit::with('details')->orderByDesc('created_at');
-        if (!empty($empId)) {
-            $query->where('trans_no', $transNo);
-        }
-        /* if (!empty($year)) {
-            $query->where('year', $year);
-        }
-        if (!empty($month)) {
-            $query->where('month', $month);
-        } */
-        $visits = $query->get();
+            // Fetch the data
+            $query = \App\Models\CrmVisit::with('details')->orderByDesc('created_at');
+            if (!empty($empId)) {
+                $query->where('trans_no', $transNo);
+            }
+            
+            $visits = $query->get();
 
-        // Group by visit_date
-        $grouped = [];
-        foreach ($visits as $visit) {
-            if (is_iterable($visit->details)) {
-                foreach ($visit->details as $detail) {
-                    $visitDate = $detail->visit_date ?? 'No Date';
-                    $grouped[$visitDate][] = $detail;
+            if ($visits->isEmpty()) {
+                throw new \Exception('No visit data found');
+            }
+
+            // Group by visit_date
+            $grouped = [];
+            foreach ($visits as $visit) {
+                if (is_iterable($visit->details)) {
+                    foreach ($visit->details as $detail) {
+                        $visitDate = $detail->visit_date ?? 'No Date';
+                        $grouped[$visitDate][] = $detail;
+                    }
                 }
             }
-        }
 
-        $visitDates = array_keys($grouped);
-        sort($visitDates);
-        $count = count($visitDates);
-
-        $html = '<html><head>';
-        $html .= '<style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-        @page {
-            margin: 10mm 20mm 10mm 20mm;
-        }
-        .container {
-            width: 98%;
-            margin: 0 auto;
-        }
-        table {
-            border-collapse: collapse;
-            border-spacing: 0;
-            width: 100%;
-            border: 0.3px solid #ddd;
-            font-size: ' . $fontSizeTable . 'px;
-            margin-bottom: 4px;
-            page-break-inside: auto;
-        }
-        table:not(:first-of-type) {
-            margin-top: 20mm;
-        }
-        thead {
-            display: table-header-group;
-        }
-        tr {
-            page-break-inside: avoid;
-            page-break-after: auto;
-        }
-        th, td {
-            text-align: left;
-            padding: 1px 2px;
-            word-break: break-word;
-            border: 0.3px solid #ddd;
-            line-height: 1.1;
-        }
-        th {
-            background-color: #333;
-            color: white;
-        }
-        .visit-date-title {
-            font-weight: bold;
-            margin-bottom: 1px;
-            font-size: ' . $fontSizeSubtitle . 'px;
-            margin-top: ' . $visitDateTopMargin . 'px;
-            page-break-before: auto;
-            page-break-after: avoid;
-        }
-        .period-label {
-            margin-left: 8px;
-            display: inline-block;
-            font-size: ' . $fontSizeSubtitle . 'px;
-        }
-        h2 {
-            margin: 0;
-            margin-top: 5px;
-            margin-right: 16px;
-            font-size: ' . $fontSizeTitle . 'px;
-            display: inline-block;
-        }
-        </style>';
-        $html .= '</head><body><div class="container">';
-        $html .= '<div style="display: flex; align-items: center;">'
-            . '<h2>MCL Preblock</h2>'
-            . '<div class="period-label"><b>Period:</b> ' . htmlspecialchars($year) . '-' . htmlspecialchars($month) . '</div>'
-            . '</div>';
-
-        if ($count === 0) {
-            $html .= '<div style="color:#888;font-size:' . $fontSizeSubtitle . 'px;">No details data found for this selection.</div>';
-        } else {
-            foreach ($visitDates as $visitDate) {
-            $details = $grouped[$visitDate];
-            $html .= '<div class="visit-date-title">Visit Date: ' . htmlspecialchars($visitDate) . '</div>';
-            $html .= '<table>';
-            $html .= '<thead><tr>'
-                . '<th style="width:' . $colWidthNo . '%;">No</th>'
-                . '<th style="width:' . $colWidthInstitusi . '%; text-align: center;">Account</th>'
-                . '<th style="width:' . $colWidthSpecialty . '%; text-align: center;">Specialty</th>'
-                . '<th style="width:' . $colWidthIndividu . '%; text-align: center;">Contact</th>'
-                . '</tr></thead><tbody>';
-            $rowNo = 1;
-            foreach ($details as $detail) {
-                $html .= '<tr>'
-                . '<td>' . $rowNo++ . '</td>'
-                . '<td>' . htmlspecialchars($detail->account ?? '') . '</td>'
-                . '<td style="text-align: center;">' . htmlspecialchars($detail->class ?? '') . '</td>'
-                . '<td>' . htmlspecialchars($detail->contact ?? '') . '</td>'
-                . '</tr>';
+            if (empty($grouped)) {
+                throw new \Exception('No details data found');
             }
-            $html .= '</tbody></table>';
+
+            $visitDates = array_keys($grouped);
+            sort($visitDates);
+            $count = count($visitDates);
+
+            $html = '<html><head>';
+            $html .= '<style>
+            * {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
             }
+            @page {
+                margin: 10mm 20mm 10mm 20mm;
+            }
+            .container {
+                width: 98%;
+                margin: 0 auto;
+            }
+            table {
+                border-collapse: collapse;
+                border-spacing: 0;
+                width: 100%;
+                border: 0.3px solid #ddd;
+                font-size: ' . $fontSizeTable . 'px;
+                margin-bottom: 4px;
+                page-break-inside: auto;
+            }
+            table:not(:first-of-type) {
+                margin-top: 20mm;
+            }
+            thead {
+                display: table-header-group;
+            }
+            tr {
+                page-break-inside: avoid;
+                page-break-after: auto;
+            }
+            th, td {
+                text-align: left;
+                padding: 1px 2px;
+                word-break: break-word;
+                border: 0.3px solid #ddd;
+                line-height: 1.1;
+            }
+            th {
+                background-color: #333;
+                color: white;
+            }
+            .visit-date-title {
+                font-weight: bold;
+                margin-bottom: 1px;
+                font-size: ' . $fontSizeSubtitle . 'px;
+                margin-top: ' . $visitDateTopMargin . 'px;
+                page-break-before: auto;
+                page-break-after: avoid;
+            }
+            .period-label {
+                margin-left: 8px;
+                display: inline-block;
+                font-size: ' . $fontSizeSubtitle . 'px;
+            }
+            h2 {
+                margin: 0;
+                margin-top: 5px;
+                margin-right: 16px;
+                font-size: ' . $fontSizeTitle . 'px;
+                display: inline-block;
+            }
+            </style>';
+            $html .= '</head><body><div class="container">';
+            $html .= '<div style="display: flex; align-items: center;">'
+                . '<h2>MCL Preblock</h2>'
+                . '<div class="period-label"><b>Period:</b> ' . htmlspecialchars($year) . '-' . htmlspecialchars($month) . '</div>'
+                . '</div>';
+
+            if ($count === 0) {
+                $html .= '<div style="color:#888;font-size:' . $fontSizeSubtitle . 'px;">No details data found for this selection.</div>';
+            } else {
+                foreach ($visitDates as $visitDate) {
+                    $details = $grouped[$visitDate];
+                    $html .= '<div class="visit-date-title">Visit Date: ' . htmlspecialchars($visitDate) . '</div>';
+                    $html .= '<table>';
+                    $html .= '<thead><tr>'
+                        . '<th style="width:' . $colWidthNo . '%;">No</th>'
+                        . '<th style="width:' . $colWidthInstitusi . '%; text-align: center;">Account</th>'
+                        . '<th style="width:' . $colWidthSpecialty . '%; text-align: center;">Specialty</th>'
+                        . '<th style="width:' . $colWidthIndividu . '%; text-align: center;">Contact</th>'
+                        . '</tr></thead><tbody>';
+                    $rowNo = 1;
+                    foreach ($details as $detail) {
+                        $html .= '<tr>'
+                        . '<td>' . $rowNo++ . '</td>'
+                        . '<td>' . htmlspecialchars($detail->account ?? '') . '</td>'
+                        . '<td style="text-align: center;">' . htmlspecialchars($detail->class ?? '') . '</td>'
+                        . '<td>' . htmlspecialchars($detail->contact ?? '') . '</td>'
+                        . '</tr>';
+                    }
+                    $html .= '</tbody></table>';
+                }
+            }
+            $html .= '</div></body></html>';
+
+            // Generate PDF using dompdf
+            $options = new Options();
+            $options->set('isRemoteEnabled', true);
+            $options->set('defaultFont', 'DejaVu Sans');
+            $dompdf = new Dompdf($options);
+            $dompdf->loadHtml($html);
+            $dompdf->setPaper('A4', 'portrait');
+            $dompdf->render();
+
+            // Stream the PDF to the browser
+            $now = (new \DateTime('now', $this->jakartaTz))->format('Ymd_His');
+            $filename = "crm-preblock-report_{$now}.pdf";
+            return response($dompdf->output(), 200, [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('PDF Generation Error: ' . $e->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to generate PDF: ' . $e->getMessage()
+            ], 500);
         }
-        $html .= '</div></body></html>';
-
-        // Generate PDF using dompdf
-        $options = new Options();
-        $options->set('isRemoteEnabled', true);
-        $options->set('defaultFont', 'DejaVu Sans');
-        $dompdf = new Dompdf($options);
-        $dompdf->loadHtml($html);
-        $dompdf->setPaper('A4', 'portrait');
-        $dompdf->render();
-
-        // Stream the PDF to the browser
-        $now = (new \DateTime('now', $this->jakartaTz))->format('Ymd_His');
-        $filename = "crm-preblock-report_{$now}.pdf";
-        return response($dompdf->output(), 200, [
-            'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
-        ]);
     }
 }

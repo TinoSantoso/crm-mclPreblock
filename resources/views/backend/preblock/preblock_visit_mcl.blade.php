@@ -27,55 +27,12 @@
                     </div>
                     <!-- /.box-header -->
                     <div class="box-body">
-
                             <ul class="nav nav-tabs">
                                 <li class="active"><a href="#Visit" data-toggle="tab" >List Visit</a></li>
                                 {{-- <li ><a href="#Ent" data-toggle="tab" >Entry</a></li> --}}
                                 
                             </ul>
-
                             <div class="tab-content"  id="custom-content-below-tabContent">
-                                        <!-- --------------------Tab Entry---------------------- -->
-                                        <div id="Ent" class="tab-pane" style=" position: relative; ">
-                                            <div class="row" style="padding-bottom: 20px;">
-                                                <div class="col-md-10">
-                                                        <div id='main-btn' >
-                                                            <div class="inner"> <div id="add" ></div></div>
-                                                            <div class="inner"> <div id="save"></div></div>
-                                                            <div class="inner"> <div id="edit"></div></div>
-                                                            <div class="inner"> <div id="cancel"></div></div>
-                                                            <div class="inner"> <div id="delete"></div></div>
-                                                            <div class="inner"> <div id="posting"></div></div>
-                                                            <div class="inner"> <div id="upload"></div></div>
-                                                        </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="row" style="margin-bottom: 20px;">
-                                                <div class="col-md-12">
-                                                    <div id="header-dxform"></div>
-                                                </div>
-                                            </div>
-                                            <div class="row" style="margin-bottom: 20px;">
-                                                <div class="col-md-12">
-                                                    <div id="list-visit-grid"></div>
-                                                </div>
-                                            </div>
-
-                                            <div id="form-container">
-                                                <div id="frm1">
-                                                    <div id="form1"></div>
-                                                                                            
-                                                    <hr>
-                                                    <div id="btnLoad" ></div>
-
-                                                    <div class="row">
-                                                            <div id="dtl" style="margin-right: 10px;margin-left:10px"></div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div id="summary"></div>
-                                        </div>
                                         
                                         <!----------------------Tab Visit------------------------->
                                         <div id="Visit" class="tab-pane" style=" position: relative; ">
