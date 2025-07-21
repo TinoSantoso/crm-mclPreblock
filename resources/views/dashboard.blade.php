@@ -37,18 +37,47 @@
     <main class="flex-grow container mx-auto p-6">
         <div class="bg-white p-8 rounded-lg shadow-xl">
             <h2 class="text-2xl font-semibold text-gray-800 mb-6">Welcome to Your Dashboard!</h2>
-            <p class="text-gray-700 mb-4">This is a protected area. You can view your data here.</p>
+            <p class="text-gray-700 mb-4">This is a protected area. You can view the features of the application here.</p>
 
-            <div class="mb-6 flex gap-4">
-                <button id="preblockButton" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md transition duration-150 ease-in-out font-semibold shadow-sm">
-                    Go to Preblock
-                </button>
-                <button id="preblockVisitButton" class="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-md transition duration-150 ease-in-out font-semibold shadow-sm">
-                    Preblock Visit
-                </button>
-                <button id="reportCustomerButton" class="bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded-md transition duration-150 ease-in-out font-semibold shadow-sm">
-                    Report Customer
-                </button>
+            <div class="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- Preblock Card -->
+                <div id="preblockButton" class="bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 cursor-pointer overflow-hidden">
+                    <div class="bg-blue-600 p-4">
+                        <h3 class="text-white text-xl font-semibold">Preblock</h3>
+                    </div>
+                    <div class="p-4">
+                        <p class="text-gray-600">Manage and view preblock information</p>
+                        <div class="mt-4 text-blue-600">
+                            <span class="font-medium">Access Now →</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Preblock Visit Card -->
+                <div id="preblockVisitButton" class="bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 cursor-pointer overflow-hidden">
+                    <div class="bg-green-600 p-4">
+                        <h3 class="text-white text-xl font-semibold">Preblock Visit</h3>
+                    </div>
+                    <div class="p-4">
+                        <p class="text-gray-600">Schedule and track preblock visits</p>
+                        <div class="mt-4 text-green-600">
+                            <span class="font-medium">Visit Now →</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Report Customer Card -->
+                <div id="reportCustomerButton" class="bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 cursor-pointer overflow-hidden">
+                    <div class="bg-purple-600 p-4">
+                        <h3 class="text-white text-xl font-semibold">Report Customer</h3>
+                    </div>
+                    <div class="p-4">
+                        <p class="text-gray-600">Customer reports and feedback</p>
+                        <div class="mt-4 text-purple-600">
+                            <span class="font-medium">Report Now →</span>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div id="userData" class="mb-6 bg-gray-50 p-4 rounded-md border border-gray-200">

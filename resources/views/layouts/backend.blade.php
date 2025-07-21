@@ -59,33 +59,9 @@
         document.addEventListener('DOMContentLoaded', async function() {
             try {
                 const token = localStorage.getItem('jwt_token') || sessionStorage.getItem('jwt_token');
-                
                 if (!token) {
                     window.location.href = '/login';
                     return;
-                }
-                
-                // Ensure token is in sessionStorage
-                sessionStorage.setItem('jwt_token', token);
-                
-                // Send token to server to store in session if not already done
-                try {
-                    const response = await fetch('/api/auth/store-token', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                        },
-                        body: JSON.stringify({ token: token })
-                    });
-                    
-                    if (!response.ok) {
-                        throw new Error(`Server responded with status: ${response.status}`);
-                    }
-                    
-                    const data = await response.json();
-                } catch (error) {
-                    console.error('Error storing token in session:', error);
                 }
             } catch (error) {
                 console.error('Error in DOMContentLoaded handler:', error);

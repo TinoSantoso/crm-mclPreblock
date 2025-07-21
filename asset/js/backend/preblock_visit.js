@@ -55,7 +55,6 @@ $(function() {
         width: '15vw',
         onClick: function(e) { 
             loadData();
-            
         }
     });
 });
@@ -85,6 +84,21 @@ async function loadData() {
     if (year) params.append('year', year);
     if (month) params.append('month', month);
     if (visit_date) params.append('visit_date', visit_date);
+
+    $("#exportLoadingPanel").dxLoadPanel({
+        message: "Exporting, please wait...",
+        visible: false,
+        shadingColor: "rgba(0,0,0,0.4)",
+        width: 300,
+        height: 100,
+        showIndicator: true,
+        showPane: true,
+        shading: true,
+        hideOnOutsideClick: false
+    });
+    // Show loading panel
+    $("#exportLoadingPanel").dxLoadPanel("instance").option("visible", true);
+    
     try {
         const res = await fetch(`${APP_BASE_URL}/crm-visits?${params.toString()}`);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -205,5 +219,7 @@ async function loadData() {
         DevExpress.ui.notify({ message: `Loaded: ${gridData.length} record(s)`, width: 400, type: 'success'}, { position: "top right", direction: "down-push" }, 3000);
     } catch (err) {
         DevExpress.ui.notify({ message: `Error loading data: ${err.message || err}`, type: 'error', width: 500}, { position: "top right", direction: "down-push" }, 3000);
+    } finally {
+        $("#exportLoadingPanel").dxLoadPanel("instance").option("visible", false);
     }
 }

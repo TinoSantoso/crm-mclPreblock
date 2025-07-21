@@ -275,7 +275,7 @@
                                 localStorage.removeItem('jwt_token');
                                 sessionStorage.removeItem('jwt_token');
 
-                                fetch(`${APP_BASE_URL}/api/auth/logout`, {
+                                fetch(`${APP_BASE_URL}/auth/logout`, {
                                     method: 'POST',
                                     headers: {
                                         'Content-Type': 'application/json'
