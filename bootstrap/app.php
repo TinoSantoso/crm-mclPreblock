@@ -110,6 +110,7 @@ $app->register(App\Providers\AuthServiceProvider::class);
 // $app->register(App\Providers\EventServiceProvider::class);
 $app->register(Illuminate\View\ViewServiceProvider::class);
 $app->register(Illuminate\Session\SessionServiceProvider::class);
+$app->register(\Maatwebsite\Excel\ExcelServiceProvider::class);
 
 /*
 |--------------------------------------------------------------------------
