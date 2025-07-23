@@ -34,7 +34,7 @@ class ReportSalesDistrictController extends Controller
         $period = $input['period'] ?? null;
         $districts = $input['districts'] ?? [];
 
-        $baseQuery = \App\Models\SalesCustomerReport::query();
+        $baseQuery = \App\Models\SalesCustomerReport::query();  //change to real datasource
         if ($period) {
             $baseQuery->where('period_month', date('m', strtotime($period)))
               ->where('period_year', date('Y', strtotime($period)));

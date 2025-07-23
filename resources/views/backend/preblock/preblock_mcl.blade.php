@@ -114,6 +114,9 @@
     #visit-dxform {
         margin-top: 20px;
     }
+    .dx-button.dx-button-warning {
+        background-color: #ffc107;
+    }
 </style>
 
 {{-- Scripts for this page --}}

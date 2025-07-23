@@ -139,17 +139,10 @@
             $("#workingday-grid").dxDataGrid({
                 dataSource: [],
                 columns: [
-                    { 
-                        dataField: "area", 
+                    {
+                        dataField: "area",
                         caption: "Area",
-                        fixed: true,
-                        lookup: {
-                            dataSource: ["district01", "district02", "district03"],
-                            valueExpr: function(item) { return item; },
-                            displayExpr: function(item) { 
-                                return item.charAt(0).toUpperCase() + item.slice(1);
-                            }
-                        }
+                        fixed: true
                     },
                     { 
                         dataField: "employee_id", 
@@ -161,87 +154,58 @@
                         caption: "Employee Name",
                         fixed: true
                     },
-                    { 
-                        dataField: "final_working_days", 
-                        caption: "Final Working Days", 
+                    {
+                        dataField: "final_total_visits",
+                        caption: "Final Working Days",
                         dataType: "number",
                         alignment: "left",
-                        fixed: true,
-                        calculateCellValue: function(rowData) {
-                            const standardDays = Object.keys(rowData)
-                                .filter(key => key.startsWith('day_'))
-                                .reduce((total, key) => total + (rowData[key] || 0), 0);
-                            return standardDays + (rowData.asm_adjustment || 0);
-                        }
+                        fixed: true
                     },
                     {
                         dataField: "standard_working_days",
                         caption: "Standard Working Days",
                         dataType: "number",
                         alignment: "left",
-                        fixed: true,
-                        calculateCellValue: function(rowData) {
-                            let total = 0;
-                            Object.keys(rowData).forEach(key => {
-                                if (key.startsWith('day_')) {
-                                    total += rowData[key] || 0;
-                                }
-                            });
-                            return total;
-                        }
+                        fixed: true
                     },
                     {
-                        dataField: "working_days_with_adjustment",
+                        dataField: "final_total_visits",
                         caption: "Working Days with Adjustment",
                         dataType: "number",
                         alignment: "left",
-                        fixed: true,
-                        calculateCellValue: function(rowData) {
-                            const standardDays = Object.keys(rowData)
-                                .filter(key => key.startsWith('day_'))
-                                .reduce((total, key) => total + (rowData[key] || 0), 0);
-                            return standardDays + (rowData.asm_adjustment || 0);
-                        }
+                        fixed: true
                     },
                     {
-                        dataField: "asm_adjustment",
+                        dataField: "adjustment_from_asm",
                         caption: "Adjustment from ASM",
                         dataType: "number",
                         alignment: "left",
                         fixed: true,
-                        allowEditing: true
+                        allowEditing: true,
+                        setCellValue: function(rowData, value) {
+                            rowData.adjustment_from_asm = value;
+                            rowData.final_total_visits = (rowData.total_offline_visits + rowData.total_online_visits) + value;
+                        }
                     },
                     {
-                        dataField: "note",
+                        dataField: "note_adjustment",
                         caption: "Note Adjustment",
                         fixed: true,
                         allowEditing: true,
                         setCellValue: function(rowData, value) {
-                            rowData.note = value;
+                            rowData.note_adjustment = value;
                             // Auto-populate note if adjustment is not 0
-                            if (rowData.asm_adjustment && rowData.asm_adjustment !== 0 && !value) {
-                                rowData.note = "Adjustment made by ASM";
+                            if (rowData.adjustment_from_asm && rowData.adjustment_from_asm !== 0 && !value) {
+                                rowData.note_adjustment = "Adjustment made by ASM";
                             }
                         }
                     },
-                    { 
-                        dataField: "grand_total", 
-                        caption: "Grand Total", 
+                    {
+                        dataField: "final_total_visits",
+                        caption: "Grand Total",
                         dataType: "number",
                         alignment: "left",
-                        fixed: true,
-                        calculateCellValue: function(rowData) {
-                            let total = 0;
-                            // Sum all day columns
-                            Object.keys(rowData).forEach(key => {
-                                if (key.startsWith('day_')) {
-                                    total += rowData[key] || 0;
-                                }
-                            });
-                            // Add ASM adjustment
-                            total += rowData.asm_adjustment || 0;
-                            return total;
-                        }
+                        fixed: true
                     }
                 ],
                 showBorders: true,
@@ -311,6 +275,7 @@
             const params = new URLSearchParams();
             if (year) params.append('year', year);
             if (month) params.append('month', month);
+            if (formData.area) params.append('area', formData.area);
             
             $("#exportLoadingPanel").dxLoadPanel("instance").option("visible", true);
             
@@ -354,31 +319,8 @@
                 // Update grid columns
                 grid.option("columns", [...baseColumns, ...dayColumns]);
                 
-                // Process the data to include day columns and area
-                const processedData = response.data.map(row => {
-                    const newRow = {
-                        ...row,
-                        area: `district0${Math.floor(Math.random() * 3) + 1}`,
-                        asm_adjustment: 0
-                    };
-                    // Initialize working days to 0
-                    for (let i = 1; i <= daysInMonth; i++) {
-                        const date = new Date(year, month - 1, i);
-                        const dayOfWeek = date.getDay();
-                        if (dayOfWeek !== 0 && dayOfWeek !== 6) {
-                            newRow[`day_${i}`] = 0;
-                        }
-                    }
-                    // If generated_days exists and it's not a weekend, set corresponding day column to 1
-                    if (row.generated_days) {
-                        const date = new Date(year, month - 1, row.generated_days);
-                        const dayOfWeek = date.getDay();
-                        if (dayOfWeek !== 0 && dayOfWeek !== 6) {
-                            newRow[`day_${row.generated_days}`] = 1;
-                        }
-                    }
-                    return newRow;
-                });
+                // The data is already processed by the controller to include day columns
+                const processedData = response.data;
                 
                 grid.option("dataSource", processedData);
                 

@@ -16,24 +16,64 @@ class EmployeeVisitSeeder extends Seeder
     {
         $employees = [
             [
-                'area' => 'District02',
+                'area' => 'District 01 - NORTHERN SUMATRA',
                 'employee_id' => 'EMP001',
                 'employee_name' => 'John Doe',
             ],
             [
-                'area' => 'District02',
+                'area' => 'District 02 - SOUTHERN SUMATRA',
                 'employee_id' => 'EMP002',
                 'employee_name' => 'Jane Smith',
             ],
             [
-                'area' => 'District03',
+                'area' => 'District 03 - WESTERN JAKARTA',
                 'employee_id' => 'EMP003',
                 'employee_name' => 'Mike Johnson',
             ],
             [
-                'area' => 'District04',
+                'area' => 'District 04 - EASTERN JAKARTA',
                 'employee_id' => 'EMP004',
                 'employee_name' => 'Sarah Wilson',
+            ],
+            [
+                'area' => 'District 05 - WEST JAVA',
+                'employee_id' => 'EMP005',
+                'employee_name' => 'David Lee',
+            ],
+            [
+                'area' => 'District 06 - KALIMANTAN',
+                'employee_id' => 'EMP006',
+                'employee_name' => 'Emily Chen',
+            ],
+            [
+                'area' => 'District 07 - NORTHERN CENTRAL JAVA',
+                'employee_id' => 'EMP007',
+                'employee_name' => 'Robert Kim',
+            ],
+            [
+                'area' => 'District 08 - SOUTHERN CENTRAL JAVA',
+                'employee_id' => 'EMP008',
+                'employee_name' => 'Lisa Wang',
+            ],
+            [
+                'area' => 'District 09 - NORTHERN EAST JAVA',
+                'employee_id' => 'EMP009',
+                'employee_name' => 'Thomas Nguyen',
+            ],
+            [
+                'area' => 'District 10 - SOUTHERN EAST JAVA',
+                'employee_id' => 'EMP010',
+                'employee_name' => 'Maria Garcia',
+            ],
+            [
+                'area' => 'District 11 - BALI-NUSRA',
+                'employee_id' => 'EMP011',
+                'employee_name' => 'James Wong',
+            ],
+            [
+                'area' => 'District 12 - FAR EAST',
+                'employee_id' => 'EMP012',
+                'employee_name' => 'Anna Park',
             ],
         ];
 

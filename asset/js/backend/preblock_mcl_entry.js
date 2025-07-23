@@ -268,7 +268,7 @@ function BootboxContent() {
             { dataField: "account", caption: "Account", fixed: true, fixedPosition: 'left' },
             { dataField: "contact_name", caption: "Contact", fixed: true, fixedPosition: 'left' },
             { dataField: "category", caption: "Category" },
-            { dataField: "target_call", caption: "Target call", alignment: "left" },
+            { dataField: "target_call", caption: "Target call", alignment: "left", dataType: "number" },
             { dataField: "specialty", caption: "Specialty" }
         ],
         filterRow: { visible: true },
@@ -298,7 +298,7 @@ function BootboxContent() {
             { dataField: "account", caption: "Account", fixed: true, fixedPosition: "left" },
             { dataField: "contact_name", caption: "Contact", fixed: true, fixedPosition: "left" },
             { dataField: "category", caption: "Category" },
-            { dataField: "target_call", caption: "Target call", alignment: "left" },
+            { dataField: "target_call", caption: "Target call", alignment: "left", dataType: "number" },
             { dataField: "specialty", caption: "Specialty" }
         ],
         filterRow: { visible: true },

@@ -48,6 +48,9 @@ $(function() {
                 summaryType: "count",
                 displayFormat: "Total: {0} rows"
             }]
+        },
+        onRowDblClick: function(e) {
+            applyDataToForm(e.data);
         }
     });
 
@@ -55,14 +58,20 @@ $(function() {
     const applyBtnContainer = document.createElement('div');
     applyBtnContainer.style.marginTop = '10px';
     applyBtnContainer.style.marginBottom = '10px';
-    applyBtnContainer.innerHTML = `<div id="show-list-panel-btn"></div>`;
+    applyBtnContainer.style.display = 'flex';
+    applyBtnContainer.style.flexDirection = 'column';
+    applyBtnContainer.style.gap = '10px';
+    applyBtnContainer.innerHTML = `
+        <div id="show-list-panel-btn"></div>
+        <div style="color: #FF0000; font-style: italic; margin-top: 5px;">* Double click on a row to edit data or click Show details button to view schedule</div>
+    `;
     document.querySelector('#list-panel').insertAdjacentElement('beforebegin', applyBtnContainer);
 
     $("#show-list-panel-btn").dxButton({
         text: "Show details",
         type: "default",
         icon: "event",
-        width: 'auto',
+        width: '10vw',
         onClick: function() {
             // Show popup-scheduler and create dxScheduler
             if ("#popup-scheduler" && $("#popup-scheduler").data("dxPopup")) {
@@ -243,8 +252,8 @@ $(function() {
                             setTimeout(function() {
                                 if (schedulerInstance) {
                                     const today = new Date();
-                                    // Set to an earlier month, then set to current month to force correct rendering
                                     schedulerInstance.option("currentDate", new Date(today.getFullYear(), today.getMonth(), 1));
+                                    schedulerInstance.reload();
                                     schedulerInstance.repaint();
                                 }
                             }, 100);
@@ -259,4 +268,87 @@ $(function() {
             }
         }
     });
+
+    function applyDataToForm(data) {
+        // Disable form fields
+        headerDxForm.itemOption("trans_no", "editorOptions", { disabled: true });
+        headerDxForm.itemOption("transaction_date", "editorOptions", { disabled: true });
+        headerDxForm.itemOption("period", "editorOptions", { 
+            disabled: true,
+            displayFormat: "yyyy-MM",
+            dateSerializationFormat: "yyyy-MM"
+        });
+        headerDxForm.itemOption("remark", "editorOptions", { disabled: true });
+
+        // Set form data from selected row
+        headerDxForm.option('formData', {
+            trans_no: data.trans_no,
+            transaction_date: data.created_at ? new Date(data.created_at) : null,
+            period: data.year && data.month ? new Date(data.year, data.month - 1, 1) : null,
+            remark: data.remark
+        });
+        headerDxForm.repaint();
+
+        // Process details data
+        let detailsArr = [];
+        if (Array.isArray(data.details)) {
+            detailsArr = data.details;
+        } else if (data.details && typeof data.details === 'object') {
+            detailsArr = Object.values(data.details);
+        }
+
+        // Map details for institusi grid
+        const institusiRows = detailsArr.map(row => ({
+            id: row.id || null,
+            institusi: row.account || '',
+            cat: row.cat || '',
+            individu: row.contact || '',
+            vf: row.vf,
+            class: row.class || '',
+            period: row.visit_date ? (typeof row.visit_date === 'string' ? new Date(row.visit_date) : row.visit_date) : null,
+            remark: row.remark || ''
+        }));
+
+        // Update institusi grid
+        const institusiGrid = $("#institusi-grid").dxDataGrid("instance");
+        institusiGrid.option({
+            dataSource: institusiRows,
+            showRowLines: true,
+            editing: {
+                allowUpdating: false,
+                allowAdding: false,
+                allowDeleting: false,
+            },
+            noDataText: ""
+        });
+        institusiGrid.refresh();
+
+        // Switch to Ent tab
+        $('.tab-pane').removeClass('active show');
+        $('.nav-tabs li').removeClass('active');
+        $("#Ent.tab-pane").addClass("active show");
+        const entTab = $('.nav-tabs a[href="#Ent"]');
+        if (entTab.length) {
+            entTab.parent().addClass('active');
+        }
+        localStorage.setItem('preblock_mcl_active_tab', 'Ent');
+
+        // Update button states
+        $('#add').dxButton('instance').option('disabled', false);
+        $('#save').dxButton('instance').option('disabled', true);
+        $('#cancel').dxButton('instance').option('disabled', true);
+        $('#delete').dxButton('instance').option('disabled', false);
+        $('#edit').dxButton('instance').option('disabled', false);
+        $("#export").dxButton("instance").option("disabled", false);
+
+        // Show notification
+        DevExpress.ui.notify({
+            message: 'Data applied to form',
+            width: 500,
+            type: 'info'
+        }, {
+            position: "top right",
+            direction: "down-push"
+        }, 3000);
+    }
 });
