@@ -1,26 +1,115 @@
-# Lumen PHP Framework
+# CRM Microapp
 
-[![Build Status](https://travis-ci.org/laravel/lumen-framework.svg)](https://travis-ci.org/laravel/lumen-framework)
-[![Total Downloads](https://img.shields.io/packagist/dt/laravel/lumen-framework)](https://packagist.org/packages/laravel/lumen-framework)
-[![Latest Stable Version](https://img.shields.io/packagist/v/laravel/lumen-framework)](https://packagist.org/packages/laravel/lumen-framework)
-[![License](https://img.shields.io/packagist/l/laravel/lumen)](https://packagist.org/packages/laravel/lumen-framework)
+A lightweight CRM application built with Lumen PHP framework for efficient customer relationship management.
 
-Laravel Lumen is a stunningly fast PHP micro-framework for building web applications with expressive, elegant syntax. We believe development must be an enjoyable, creative experience to be truly fulfilling. Lumen attempts to take the pain out of development by easing common tasks used in the majority of web projects, such as routing, database abstraction, queueing, and caching.
+![CRM Microapp](https://via.placeholder.com/800x400?text=CRM+Microapp)
 
-> **Note:** In the years since releasing Lumen, PHP has made a variety of wonderful performance improvements. For this reason, along with the availability of [Laravel Octane](https://laravel.com/docs/octane), we no longer recommend that you begin new projects with Lumen. Instead, we recommend always beginning new projects with [Laravel](https://laravel.com).
+## Overview
 
-## Official Documentation
+This CRM Microapp provides a streamlined solution for managing customer relationships, sales reporting, and visit tracking. Built on the lightweight Lumen PHP framework, it offers excellent performance while maintaining robust functionality.
 
-Documentation for the framework can be found on the [Lumen website](https://lumen.laravel.com/docs).
+## Features
 
-## Contributing
+- **Sales Reporting**: Generate comprehensive sales reports by district
+- **Visit Management**: Track and manage customer visits
+- **Master Customer List (MCL)**: Entry and export functionality
+- **Data Export**: Export sales data to various formats
+- **Responsive Dashboard**: Monitor key metrics at a glance
 
-Thank you for considering contributing to Lumen! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## Requirements
 
-## Security Vulnerabilities
+- PHP >= 8.1
+- Composer
+- MySQL/MariaDB
+- Node.js and NPM (for frontend assets)
 
-If you discover a security vulnerability within Lumen, please send an e-mail to Taylor Otwell at taylor@laravel.com. All security vulnerabilities will be promptly addressed.
+## Installation
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/your-username/crm-microapp-lumen.git
+   cd crm-microapp-lumen
+   ```
+
+2. Install PHP dependencies:
+   ```bash
+   composer install
+   ```
+
+3. Set up environment variables:
+   ```bash
+   cp .env.example .env
+   # Edit .env file with your database credentials and other settings
+   ```
+
+4. Generate application key:
+   ```bash
+   php artisan key:generate
+   ```
+
+5. Run migrations:
+   ```bash
+   php artisan migrate
+   ```
+
+6. Seed the database (optional):
+   ```bash
+   php artisan db:seed
+   ```
+
+7. Start the development server:
+   ```bash
+   php -S localhost:8000 -t public
+   ```
+
+## Project Structure
+
+```
+├── app/                  # Application core code
+│   ├── Console/          # Console commands
+│   ├── Events/           # Event classes
+│   ├── Exceptions/       # Exception handlers
+│   ├── Exports/          # Data export functionality
+│   ├── Http/             # HTTP layer
+│   │   ├── Controllers/  # Request controllers
+│   │   └── Middleware/   # HTTP middleware
+│   ├── Jobs/             # Queue jobs
+│   ├── Listeners/        # Event listeners
+│   ├── Models/           # Database models
+│   └── Providers/        # Service providers
+├── asset/                # Frontend assets
+│   ├── css/              # Stylesheets
+│   ├── fonts/            # Font files
+│   └── js/               # JavaScript files
+├── bootstrap/            # App bootstrapping
+├── config/               # Configuration files
+├── database/             # Database migrations and seeds
+├── public/               # Public directory
+├── resources/            # Application resources
+│   └── views/            # View templates
+├── routes/               # Route definitions
+├── storage/              # Storage directory
+└── tests/                # Test cases
+```
+
+## Usage
+
+After installation, access the application through your web browser at `http://localhost:8000` or your configured domain.
+
+Login with your credentials to access the dashboard and start managing your customer relationships.
+
+## Technologies
+
+- **Backend**: Lumen PHP Framework
+- **Frontend**: HTML, CSS, JavaScript
+- **UI Components**: DevExtreme, Bootstrap
+- **Icons**: Font Awesome
+- **Database**: MySQL/MariaDB
 
 ## License
 
-The Lumen framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+[MIT](LICENSE)
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.

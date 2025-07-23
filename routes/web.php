@@ -66,4 +66,7 @@ $router->group(['prefix' => 'api', 'middleware' => ['session.token']], function 
 
     Route::get('/report-customer', 'Backend\ReportSalesDistrictController@index');
     Route::post('/report-customer-export', 'Backend\ReportSalesDistrictController@exportByCustomer');
+    
+    Route::get('/actual-working-day', 'Backend\WorkingDayController@index');
+    Route::get('/actual-working-day/data', 'Backend\WorkingDayController@getData');
 });

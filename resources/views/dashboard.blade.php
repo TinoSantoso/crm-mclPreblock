@@ -39,7 +39,7 @@
             <h2 class="text-2xl font-semibold text-gray-800 mb-6">Welcome to Your Dashboard!</h2>
             <p class="text-gray-700 mb-4">This is a protected area. You can view the features of the application here.</p>
 
-            <div class="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
                 <!-- Preblock Card -->
                 <div id="preblockButton" class="bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 cursor-pointer overflow-hidden">
                     <div class="bg-blue-600 p-4">
@@ -78,6 +78,19 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Working Day Card -->
+                <div id="workingDayButton" class="bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 cursor-pointer overflow-hidden">
+                    <div class="bg-orange-600 p-4">
+                        <h3 class="text-white text-xl font-semibold">Working Day</h3>
+                    </div>
+                    <div class="p-4">
+                        <p class="text-gray-600">Manage your working schedule</p>
+                        <div class="mt-4 text-orange-600">
+                            <span class="font-medium">Schedule Now →</span>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div id="userData" class="mb-6 bg-gray-50 p-4 rounded-md border border-gray-200">
@@ -88,7 +101,7 @@
             </div>
 
             <div class="mt-8">
-                <h3 class="text-xl font-semibold text-gray-800 mb-4">DevExpress Data Grid Example</h3>
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">DevExpress Data Grid</h3>
                 <p class="text-gray-600 mb-4">This is a placeholder for a DevExpress JQuery Data Grid. Data would typically be loaded from your Lumen API.</p>
                 <div id="gridContainer" class="rounded-lg overflow-hidden border border-gray-300">
                     <!-- DevExpress Data Grid will be initialized here -->
@@ -150,7 +163,6 @@
                     return;
                 }
                 
-                console.log('Token stored in session successfully');
             } catch (error) {
                 console.error('Error storing token in session:', error);
                 showMessage('Error connecting to server. Please try again later.', 'error');
@@ -182,8 +194,6 @@
                 localStorage.removeItem('jwt_token');
                 window.location.href = `${APP_BASE_URL}/login`;
             }
-
-            console.log("Dashboard loaded successfully");
         });
 
         // Logout functionality
@@ -255,6 +265,10 @@
         // Report Customer button handler
         document.getElementById('reportCustomerButton').addEventListener('click', () => {
             handleTokenAndRedirect(`${APP_BASE_URL}/api/report-customer`, 'Report Customer');
+        });
+
+        document.getElementById('workingDayButton').addEventListener('click', () => {
+            handleTokenAndRedirect(`${APP_BASE_URL}/api/actual-working-day`, 'Working Day');
         });
     </script>
 </body>

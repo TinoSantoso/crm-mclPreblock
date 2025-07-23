@@ -93,14 +93,14 @@ class SalesReportsExport implements FromQuery, WithHeadings, WithMapping, Respon
             $row->custName ?? '',
             $row->prodGroup ?? '',
             $row->prod_name ?? '',
-            number_format($row->gross, 0, '.', ','),
-            number_format($row->qty, 0, '.', ','),
-            number_format($row->discount, 0, '.', ','),
-            number_format($row->netSales, 0, '.', ','),
-            number_format($row->ly_gross, 0, '.', ','),
-            number_format($row->ly_qty, 0, '.', ','),
-            number_format($row->ly_discount, 0, '.', ','),
-            number_format($row->ly_netSales, 0, '.', ','),
+            $row->gross ?? 0,
+            $row->qty ?? 0,
+            $row->discount ?? 0,
+            $row->netSales ?? 0,
+            $row->ly_gross ?? 0,
+            $row->ly_qty ?? 0,
+            $row->ly_discount ?? 0,
+            $row->ly_netSales ?? 0,
         ];
     }
 
