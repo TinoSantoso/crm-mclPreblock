@@ -617,4 +617,95 @@ class PreblockMclController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Show report visit view
+     */
+    public function showReportVisit()
+    {
+        return view('backend.preblock.report_preblock_mcl');
+    }
+    
+    /**
+     * Generate report for visits using CrmVisit and CrmVisitDetail models
+     */
+    public function reportVisit(Request $request) 
+    {
+        try {
+            // Get parameters from request
+            $empId = $request->user()->employee_id;
+            $period = $request->input('period');
+            
+            // Validate period format
+            if (!$period || !preg_match('/^\d{4}-\d{2}$/', $period)) {
+                throw new \Exception('Invalid period format. Expected YYYY-MM');
+            }
+
+            // Parse period into year and month
+            list($year, $month) = explode('-', $period);
+
+            // Query visits data using models
+            $visits = CrmVisit::with(['details' => function($query) {
+                $query->orderBy('visit_date');
+            }])
+            ->where('emp_id', $empId)
+            ->where('year', $year)
+            ->where('month', $month)
+            ->get();
+
+            if ($visits->isEmpty()) {
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'No visit data found for the specified period',
+                    'data' => []
+                ]);
+            }
+
+            // Group visits by date for the report
+            $groupedVisits = collect();
+            foreach ($visits as $visit) {
+                foreach ($visit->details as $detail) {
+                    $visitDate = $detail->visit_date;
+                    if (!$groupedVisits->has($visitDate)) {
+                        $groupedVisits[$visitDate] = collect();
+                    }
+                    $groupedVisits[$visitDate]->push($detail);
+                }
+            }
+
+            // Prepare report data
+            $reportData = [];
+            foreach ($groupedVisits as $date => $dayVisits) {
+                $reportData[] = [
+                    'visit_date' => $date,
+                    'total_visits' => $dayVisits->count(),
+                    'visits' => $dayVisits->map(function($detail) {
+                        return [
+                            'trans_no' => $detail->trans_no,
+                            'account' => $detail->account,
+                            'contact' => $detail->contact,
+                            'category' => $detail->cat,
+                            'visit_frequency' => $detail->vf,
+                            'class' => $detail->class,
+                            'remark' => $detail->remark
+                        ];
+                    })
+                ];
+            }
+
+            return response()->json([
+                'status' => 'success',
+                'period' => $period,
+                'total_visits' => $visits->flatMap->details->count(),
+                'data' => $reportData
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error generating visit report: ' . $e->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to generate visit report: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }

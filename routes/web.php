@@ -63,6 +63,8 @@ $router->group(['prefix' => 'api', 'middleware' => ['session.token']], function 
     $router->delete('/destroy/{id}', 'Backend\PreblockMclController@destroy');
     $router->post('/crm-visits/export-pdf', 'Backend\PreblockMclController@exportPdf');
     $router->post('/crm-visit-detail/{id}/is-visited', 'Backend\PreblockMclController@updateIsVisited');
+    $router->get('/report-preblock-visit', 'Backend\PreblockMclController@showReportVisit');
+    $router->get('/report-preblock-visit/data', 'Backend\PreblockMclController@reportVisit');
 
     Route::get('/report-customer', 'Backend\ReportSalesDistrictController@index');
     Route::post('/report-customer-export', 'Backend\ReportSalesDistrictController@exportByCustomer');

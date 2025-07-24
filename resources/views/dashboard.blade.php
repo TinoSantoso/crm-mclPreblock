@@ -39,55 +39,74 @@
             <h2 class="text-2xl font-semibold text-gray-800 mb-6">Welcome to Your Dashboard!</h2>
             <p class="text-gray-700 mb-4">This is a protected area. You can view the features of the application here.</p>
 
-            <div class="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-                <!-- Preblock Card -->
-                <div id="preblockButton" class="bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 cursor-pointer overflow-hidden">
-                    <div class="bg-blue-600 p-4">
-                        <h3 class="text-white text-xl font-semibold">Preblock</h3>
+            <div class="mb-6 space-y-4">
+                <!-- First Row -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- Preblock Card -->
+                    <div id="preblockButton" class="bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 cursor-pointer overflow-hidden">
+                        <div class="bg-blue-600 p-4">
+                            <h3 class="text-white text-xl font-semibold">Preblock</h3>
+                        </div>
+                        <div class="p-4">
+                            <p class="text-gray-600">Manage and view preblock information</p>
+                            <div class="mt-4 text-blue-600">
+                                <span class="font-medium">Access Now →</span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="p-4">
-                        <p class="text-gray-600">Manage and view preblock information</p>
-                        <div class="mt-4 text-blue-600">
-                            <span class="font-medium">Access Now →</span>
+
+                    <!-- Preblock Visit Card -->
+                    <div id="preblockVisitButton" class="bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 cursor-pointer overflow-hidden">
+                        <div class="bg-green-600 p-4">
+                            <h3 class="text-white text-xl font-semibold">Preblock Visit</h3>
+                        </div>
+                        <div class="p-4">
+                            <p class="text-gray-600">Schedule and track preblock visits</p>
+                            <div class="mt-4 text-green-600">
+                                <span class="font-medium">Visit Now →</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Report Preblock Visit Card -->
+                    <div id="reportPreblockVisitButton" class="bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 cursor-pointer overflow-hidden">
+                        <div class="bg-indigo-600 p-4">
+                            <h3 class="text-white text-xl font-semibold">Report Preblock Visit</h3>
+                        </div>
+                        <div class="p-4">
+                            <p class="text-gray-600">Report and track preblock visits</p>
+                            <div class="mt-4 text-indigo-600">
+                                <span class="font-medium">Report Now →</span>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Preblock Visit Card -->
-                <div id="preblockVisitButton" class="bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 cursor-pointer overflow-hidden">
-                    <div class="bg-green-600 p-4">
-                        <h3 class="text-white text-xl font-semibold">Preblock Visit</h3>
-                    </div>
-                    <div class="p-4">
-                        <p class="text-gray-600">Schedule and track preblock visits</p>
-                        <div class="mt-4 text-green-600">
-                            <span class="font-medium">Visit Now →</span>
+                <!-- Second Row -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Report Customer Card -->
+                    <div id="reportCustomerButton" class="bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 cursor-pointer overflow-hidden">
+                        <div class="bg-purple-600 p-4">
+                            <h3 class="text-white text-xl font-semibold">Report Customer</h3>
+                        </div>
+                        <div class="p-4">
+                            <p class="text-gray-600">Customer reports and feedback</p>
+                            <div class="mt-4 text-purple-600">
+                                <span class="font-medium">Report Now →</span>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Report Customer Card -->
-                <div id="reportCustomerButton" class="bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 cursor-pointer overflow-hidden">
-                    <div class="bg-purple-600 p-4">
-                        <h3 class="text-white text-xl font-semibold">Report Customer</h3>
-                    </div>
-                    <div class="p-4">
-                        <p class="text-gray-600">Customer reports and feedback</p>
-                        <div class="mt-4 text-purple-600">
-                            <span class="font-medium">Report Now →</span>
+                    <!-- Working Day Card -->
+                    <div id="workingDayButton" class="bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 cursor-pointer overflow-hidden">
+                        <div class="bg-orange-600 p-4">
+                            <h3 class="text-white text-xl font-semibold">Working Day</h3>
                         </div>
-                    </div>
-                </div>
-
-                <!-- Working Day Card -->
-                <div id="workingDayButton" class="bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 cursor-pointer overflow-hidden">
-                    <div class="bg-orange-600 p-4">
-                        <h3 class="text-white text-xl font-semibold">Working Day</h3>
-                    </div>
-                    <div class="p-4">
-                        <p class="text-gray-600">Manage your working schedule</p>
-                        <div class="mt-4 text-orange-600">
-                            <span class="font-medium">Schedule Now →</span>
+                        <div class="p-4">
+                            <p class="text-gray-600">Manage your working schedule</p>
+                            <div class="mt-4 text-orange-600">
+                                <span class="font-medium">Schedule Now →</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -260,6 +279,11 @@
         // Preblock Visit button handler
         document.getElementById('preblockVisitButton').addEventListener('click', () => {
             handleTokenAndRedirect(`${APP_BASE_URL}/api/preblock-visit`, 'Preblock Visit');
+        });
+
+        // Report Preblock Visit button handler
+        document.getElementById('reportPreblockVisitButton').addEventListener('click', () => {
+            handleTokenAndRedirect(`${APP_BASE_URL}/api/report-preblock-visit`, 'Report Preblock Visit');
         });
 
         // Report Customer button handler
