@@ -623,7 +623,12 @@ class PreblockMclController extends Controller
      */
     public function showReportVisit()
     {
-        return view('backend.preblock.report_preblock_mcl');
+        // Get all users from User model
+        $users = \App\Models\User::all();
+        
+        return view('backend.preblock.report_preblock_mcl', [
+            'users' => $users
+        ]);
     }
     
     /**

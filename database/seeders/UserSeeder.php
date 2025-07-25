@@ -12,7 +12,7 @@ class UserSeeder extends Seeder
     {
         DB::table('users')->insert([
             [
-            'name' => 'User 210402',
+            'name' => 'Rifqi Alhamidi',
             'email' => '210402@example.com',
             'employee_id' => '210402',
             'password' => app('hash')->make('east210402'),
@@ -20,7 +20,7 @@ class UserSeeder extends Seeder
             'updated_at' => Carbon::now(),
             ],
             [
-            'name' => 'User 230501',
+            'name' => 'Muhammad Amin',
             'email' => '230501@example.com',
             'employee_id' => '230501',
             'password' => app('hash')->make('east230501'),
@@ -28,7 +28,7 @@ class UserSeeder extends Seeder
             'updated_at' => Carbon::now(),
             ],
             [
-            'name' => 'User 191230',
+            'name' => 'Rangga Putra',
             'email' => '191230@example.com',
             'employee_id' => '191230',
             'password' => app('hash')->make('east191230'),
@@ -36,7 +36,7 @@ class UserSeeder extends Seeder
             'updated_at' => Carbon::now(),
             ],
             [
-            'name' => 'User 191105',
+            'name' => 'Dewi Efrina',
             'email' => '191105@example.com',
             'employee_id' => '191105',
             'password' => app('hash')->make('east191105'),
@@ -44,7 +44,7 @@ class UserSeeder extends Seeder
             'updated_at' => Carbon::now(),
             ],
             [
-            'name' => 'User 241101',
+            'name' => 'Heru HANDOKO',
             'email' => '241101@example.com',
             'employee_id' => '241101',
             'password' => app('hash')->make('east241101'),

@@ -89,14 +89,34 @@ $(function() {
 
     $("#report-dxform").dxForm({
         formData: {
-            period: new Date()
+            period: new Date(),
+            employee: null
         },
         labelLocation: "left",
         items: [
             {
                 itemType: "group",
-                colCount: 2,
+                colCount: 1,
                 items: [
+                    {
+                        dataField: "employee",
+                        label: { text: "Employee" },
+                        editorType: "dxSelectBox",
+                        editorOptions: {
+                            dataSource: @json($users->map(function($user) {
+                                return [
+                                    'id' => $user->employee_id,
+                                    'text' => $user->name
+                                ];
+                            })),
+                            displayExpr: "text",
+                            valueExpr: "id",
+                            searchEnabled: true,
+                            placeholder: "Select an employee",
+                            width: '20vw'
+                        },
+                        isRequired: true
+                    },
                     {
                         dataField: "period",
                         label: { text: "Period" },
@@ -107,7 +127,7 @@ $(function() {
                             pickerType: "calendar",
                             useMaskBehavior: true,
                             openOnFieldClick: true,
-                            width: 'auto',
+                            width: '20vw',
                             calendarOptions: {
                                 maxZoomLevel: "year",
                                 minZoomLevel: "year"
