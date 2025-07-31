@@ -142,7 +142,7 @@ $(function() {
 
     $("#load").dxButton({
         icon: 'refresh',
-        text: "Load Data",
+        text: "View Report",
         type: 'default',
         stylingMode: 'contained',
         width: '120px',
@@ -157,7 +157,7 @@ $(function() {
         type: 'success',
         stylingMode: 'contained',
         width: '120px',
-        onClick: function(e) { 
+        onClick: function(e) {
             exportReportData();
         }
     });
@@ -166,11 +166,15 @@ $(function() {
 async function loadReportData() {
     const form = $("#report-dxform").dxForm("instance");
     if (!form.validate().isValid) {
-        DevExpress.ui.notify({ message: "Please select a period.", width: 400, type: 'error' }, { position: "top right", direction: "down-push" }, 2000);
+        DevExpress.ui.notify({ message: "Please fill in all required fields.", width: 400, type: 'error' }, { position: "top right", direction: "down-push" }, 2000);
         return;
     }
 
     const formData = form.option("formData");
+    if (!formData.employee) {
+        DevExpress.ui.notify({ message: "Employee is required.", width: 400, type: 'error' }, { position: "top right", direction: "down-push" }, 2000);
+        return;
+    }
     if (!formData.period) {
         DevExpress.ui.notify({ message: "Period is required.", width: 400, type: 'error' }, { position: "top right", direction: "down-push" }, 2000);
         return;
@@ -192,20 +196,67 @@ async function loadReportData() {
         
         if (!response.data || response.data.length === 0) {
             DevExpress.ui.notify({ message: "No data found for the selected period.", width: 400, type: 'warning' }, { position: "top right", direction: "down-push" }, 3000);
-            $("#report-grid").html('<div class="alert alert-info">No data available for the selected period.</div>');
+            $("#report-grid").html('<div class="alert alert-default">No data available for the selected period.</div>');
             return;
         }
 
+        // Process the nested data structure to create a flat array for the grid
+        const flattenedData = [];
+        response.data.forEach(visit => {
+            if (visit.details && visit.details.length > 0) {
+                visit.details.forEach(detail => {
+                    flattenedData.push({
+                        id: detail.id,
+                        trans_no: detail.trans_no,
+                        account: detail.account,
+                        contact: detail.contact,
+                        category: detail.cat,
+                        visit_call: detail.vf,
+                        class: detail.class,
+                        visit_date: detail.visit_date,
+                        remark: detail.remark
+                    });
+                });
+            }
+        });
+
         $("#report-grid").dxDataGrid({
-            dataSource: response.data,
+            dataSource: flattenedData,
             columns: [
-                { dataField: "visit_date", caption: "Visit Date", dataType: "date", format: "yyyy-MM-dd" },
-                { dataField: "total_visits", caption: "Total Visits", alignment: "center", width: 120 }
+                { dataField: "account", caption: "Account", dataType: "string", allowEditing: false},
+                { dataField: "category", caption: "Category", dataType: "string", allowEditing: false },
+                { dataField: "contact", caption: "Contact Name", dataType: "string", allowEditing: false },
+                { dataField: "visit_call", caption: "Target Call", dataType: "number", alignment: "left", allowEditing: false },
+                { dataField: "class", caption: "Specialty", dataType: "string", allowEditing: false },
+                {
+                    dataField: "visit_date",
+                    caption: "Visit date",
+                    dataType: "date",
+                    allowEditing: true,
+                    editorType: "dxDateBox",
+                    editorOptions: {
+                        type: "date",
+                        displayFormat: "yyyy-MM-dd",
+                        pickerType: "calendar",
+                        useMaskBehavior: true,
+                        openOnFieldClick: true,
+                        height: 30,
+                    },
+                    validationRules: [{ type: "required" }]
+                },
+                {
+                    dataField: "remark",
+                    caption: "Remark",
+                    dataType: "string",
+                    allowEditing: true,
+                    editorType: "dxTextArea",
+                    editorOptions: { height: 30 }
+                }
             ],
             showBorders: true,
             showRowLines: true,
             rowAlternationEnabled: true,
-            paging: { pageSize: 10 },
+            paging: { pageSize: 25 },
             filterRow: { visible: true },
             searchPanel: { visible: true, width: 240, placeholder: 'Search...' },
             height: 'auto',
@@ -213,49 +264,16 @@ async function loadReportData() {
             summary: {
                 totalItems: [
                     {
-                        column: "total_visits",
-                        summaryType: "sum",
+                        column: "id",
+                        summaryType: "count",
                         displayFormat: "Total: {0} visits"
                     }
                 ]
-            },
-            masterDetail: {
-                enabled: true,
-                template: function(container, options) {
-                    const visits = options.data.visits || [];
-                    
-                    $('<div>').addClass('visit-date-header')
-                        .text(`Visit Details for ${options.data.visit_date}`)
-                        .appendTo(container);
-                    
-                    $('<div>').dxDataGrid({
-                        dataSource: visits,
-                        columns: [
-                            { dataField: "account", caption: "Account" },
-                            { dataField: "contact", caption: "Contact" },
-                            { dataField: "category", caption: "Category" },
-                            { dataField: "visit_frequency", caption: "Target Call", alignment: "center" },
-                            { dataField: "class", caption: "Specialty" },
-                            { dataField: "remark", caption: "Remark" }
-                        ],
-                        showBorders: true,
-                        showRowLines: true,
-                        paging: { pageSize: 5 },
-                        columnAutoWidth: true,
-                        summary: {
-                            totalItems: [{
-                                column: "account",
-                                summaryType: "count",
-                                displayFormat: "Total: {0} accounts"
-                            }]
-                        }
-                    }).appendTo(container);
-                }
             }
         });
 
         DevExpress.ui.notify({ 
-            message: `Successfully loaded data for period: ${period}`, 
+            message: `Successfully loaded data for period: ${response.period} (${flattenedData.length} visits)`, 
             width: 400, 
             type: 'success'
         }, { position: "top right", direction: "down-push" }, 3000);

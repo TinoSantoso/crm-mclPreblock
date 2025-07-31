@@ -64,12 +64,7 @@ $(function() {
             useIcons: true
         },
         columns: [
-            { 
-                dataField: "institusi", 
-                caption: "Account", 
-                dataType: "string", 
-                allowEditing: false
-            },
+            { dataField: "institusi", caption: "Account", dataType: "string", allowEditing: false },
             { dataField: "cat", caption: "Category", dataType: "string", allowEditing: false },
             { dataField: "individu", caption: "Contact Name", dataType: "string", allowEditing: false },
             { dataField: "vf", caption: "Target Call", dataType: "number", alignment: "left", allowEditing: false },

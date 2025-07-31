@@ -666,43 +666,11 @@ class PreblockMclController extends Controller
                 ]);
             }
 
-            // Group visits by date for the report
-            $groupedVisits = collect();
-            foreach ($visits as $visit) {
-                foreach ($visit->details as $detail) {
-                    $visitDate = $detail->visit_date;
-                    if (!$groupedVisits->has($visitDate)) {
-                        $groupedVisits[$visitDate] = collect();
-                    }
-                    $groupedVisits[$visitDate]->push($detail);
-                }
-            }
-
-            // Prepare report data
-            $reportData = [];
-            foreach ($groupedVisits as $date => $dayVisits) {
-                $reportData[] = [
-                    'visit_date' => $date,
-                    'total_visits' => $dayVisits->count(),
-                    'visits' => $dayVisits->map(function($detail) {
-                        return [
-                            'trans_no' => $detail->trans_no,
-                            'account' => $detail->account,
-                            'contact' => $detail->contact,
-                            'category' => $detail->cat,
-                            'visit_frequency' => $detail->vf,
-                            'class' => $detail->class,
-                            'remark' => $detail->remark
-                        ];
-                    })
-                ];
-            }
-
             return response()->json([
                 'status' => 'success',
                 'period' => $period,
                 'total_visits' => $visits->flatMap->details->count(),
-                'data' => $reportData
+                'data' => $visits
             ]);
 
         } catch (\Exception $e) {
