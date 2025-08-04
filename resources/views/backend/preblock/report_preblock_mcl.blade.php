@@ -218,10 +218,6 @@ async function loadReportData() {
             });
         }
 
-        if (flattenedData.length === 0) {
-            DevExpress.ui.notify({ message: "No data found for the selected period.", width: 400, type: 'warning' }, { position: "top right", direction: "down-push" }, 3000);
-        }
-
         $("#report-grid").dxDataGrid({
             dataSource: flattenedData,
             columns: [
@@ -295,12 +291,19 @@ async function loadReportData() {
             }
         });
 
-        DevExpress.ui.notify({ 
-            message: `Successfully loaded data for period: ${response.period} (${flattenedData.length} visits)`, 
-            width: 400, 
-            type: 'success'
-        }, { position: "top right", direction: "down-push" }, 3000);
-        
+        if (!flattenedData.length) {
+            DevExpress.ui.notify({ 
+                message: `No data found for period: ${response.period}`, 
+                width: 400, 
+                type: 'warning'
+            }, { position: "top right", direction: "down-push" }, 3000);
+        } else {
+            DevExpress.ui.notify({ 
+                message: `Successfully loaded data for period: ${response.period} (${flattenedData.length} visits)`, 
+                width: 400, 
+                type: 'success'
+            }, { position: "top right", direction: "down-push" }, 3000);
+        }
     } catch (error) {
         console.error("Error loading report data:", error);
         DevExpress.ui.notify({ 
