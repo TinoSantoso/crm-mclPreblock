@@ -108,5 +108,7 @@
     <script type="text/javascript" language="javascript" src="{!! url('asset/js/devexp/globalize/date.js')!!}"></script>
     <script type="text/javascript" src="{!! url('asset/js/tools.js')!!}"></script>
     <script type="text/javascript" language="javascript" src="{!! url('asset/js/bootstrap-filestyle.js')!!}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 </body>
 </html>

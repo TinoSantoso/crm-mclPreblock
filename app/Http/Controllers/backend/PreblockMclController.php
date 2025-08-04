@@ -668,7 +668,7 @@ class PreblockMclController extends Controller
     {
         try {
             // Get parameters from request
-            $empId = $request->user()->employee_id;
+            $empId = $request->input('empId');
             $period = $request->input('period');
             
             // Validate period format

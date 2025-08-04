@@ -145,13 +145,13 @@ $(function() {
         text: "View Report",
         type: 'default',
         stylingMode: 'contained',
-        width: '120px',
+        width: '10vw',
         onClick: function(e) { 
             loadReportData();
         }
     });
 
-    $("#export").dxButton({
+    /* $("#export").dxButton({
         icon: 'fa fa-file-pdf-o',
         text: "Export PDF",
         type: 'success',
@@ -160,7 +160,7 @@ $(function() {
         onClick: function(e) {
             exportReportData();
         }
-    });
+    }); */
 });
 
 async function loadReportData() {
@@ -182,11 +182,12 @@ async function loadReportData() {
 
     const date = new Date(formData.period);
     const period = date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0');
+    const employee = formData.employee;
     
     $("#loadPanel").dxLoadPanel("instance").option("visible", true);
     
     try {
-        const res = await fetch(`${APP_BASE_URL}/report-preblock-visit/data?period=${period}`);
+        const res = await fetch(`${APP_BASE_URL}/report-preblock-visit/data?empId=${employee}&period=${period}`);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         
         const response = await res.json();
@@ -194,31 +195,32 @@ async function loadReportData() {
             throw new Error(response.message || 'Failed to load data');
         }
         
-        if (!response.data || response.data.length === 0) {
-            DevExpress.ui.notify({ message: "No data found for the selected period.", width: 400, type: 'warning' }, { position: "top right", direction: "down-push" }, 3000);
-            $("#report-grid").html('<div class="alert alert-default">No data available for the selected period.</div>');
-            return;
-        }
-
         // Process the nested data structure to create a flat array for the grid
         const flattenedData = [];
-        response.data.forEach(visit => {
-            if (visit.details && visit.details.length > 0) {
-                visit.details.forEach(detail => {
-                    flattenedData.push({
-                        id: detail.id,
-                        trans_no: detail.trans_no,
-                        account: detail.account,
-                        contact: detail.contact,
-                        category: detail.cat,
-                        visit_call: detail.vf,
-                        class: detail.class,
-                        visit_date: detail.visit_date,
-                        remark: detail.remark
+        
+        if (response.data && response.data.length > 0) {
+            response.data.forEach(visit => {
+                if (visit.details && visit.details.length > 0) {
+                    visit.details.forEach(detail => {
+                        flattenedData.push({
+                            id: detail.id,
+                            trans_no: detail.trans_no,
+                            account: detail.account,
+                            contact: detail.contact,
+                            category: detail.cat,
+                            visit_call: detail.vf,
+                            class: detail.class,
+                            visit_date: detail.visit_date,
+                            remark: detail.remark
+                        });
                     });
-                });
-            }
-        });
+                }
+            });
+        }
+
+        if (flattenedData.length === 0) {
+            DevExpress.ui.notify({ message: "No data found for the selected period.", width: 400, type: 'warning' }, { position: "top right", direction: "down-push" }, 3000);
+        }
 
         $("#report-grid").dxDataGrid({
             dataSource: flattenedData,
@@ -261,6 +263,27 @@ async function loadReportData() {
             searchPanel: { visible: true, width: 240, placeholder: 'Search...' },
             height: 'auto',
             columnAutoWidth: true,
+            export: {
+                enabled: flattenedData.length > 0,
+                allowExportSelectedData: false,
+                fileName: `report-${period}`,
+                format: 'xlsx'
+            },
+            onExporting: function(e) {
+                const workbook = new ExcelJS.Workbook();
+                const worksheet = workbook.addWorksheet('Report');
+                
+                DevExpress.excelExporter.exportDataGrid({
+                    component: e.component,
+                    worksheet: worksheet,
+                    autoFilterEnabled: true
+                }).then(function() {
+                    workbook.xlsx.writeBuffer().then(function(buffer) {
+                        saveAs(new Blob([buffer], { type: 'application/octet-stream' }), `report-${period}.xlsx`);
+                    });
+                });
+                e.cancel = true;
+            },
             summary: {
                 totalItems: [
                     {
