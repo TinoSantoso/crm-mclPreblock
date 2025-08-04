@@ -75,15 +75,23 @@ class PreblockMclController extends Controller
         $header = $data['header'] ?? [];
         $details = $data['details'] ?? [];
 
-        // Check for duplicate (emp_id + account) before storing
+        // Check for duplicate data before storing
         $empId = $request->user()->employee_id ?? null;
         if ($empId && is_array($details)) {
             foreach ($details as $row) {
-                $account = $row['institusi'] ?? null;
-                if ($account && $this->checkVisitDetailByEmpAndAccount($empId, $account)) {
+                $params = [
+                    'account' => $row['institusi'] ?? null,
+                    'period_detail' => $row['period'] ?? null, 
+                    'period' => $header['period'] ?? null,
+                    'emp_id' => $empId
+                ];
+
+                if ($params['account'] && $params['period'] && 
+                    $this->checkVisitDetailByEmpAndAccount($params)) {
+                    $formattedPeriod = date('Y-m', strtotime($params['period']));
                     return response()->json([
-                    'status' => 'failed',
-                    'error' => "Duplicate entry: Employee ID $empId already has account $account in visit details."
+                        'status' => 'failed',
+                        'error' => "Duplicate entry: Employee ID {$params['emp_id']} already has visit details for period $formattedPeriod."
                     ], 409);
                 }
             }
@@ -407,14 +415,36 @@ class PreblockMclController extends Controller
      * Check if a crm_visit_details record exists for a given emp_id and account
      * Returns true if exists, false otherwise
      */
-    protected function checkVisitDetailByEmpAndAccount($empId, $account)
+    protected function checkVisitDetailByEmpAndAccount($params)
     {
-        $exists = DB::table('crm_visit_details')
-            ->join('crm_visits', 'crm_visits.trans_no', '=', 'crm_visit_details.trans_no')
-            ->where('crm_visits.emp_id', $empId)
-            ->where('crm_visit_details.account', $account)
-            ->exists();
-        return $exists;
+        try {        
+            $dt = new \DateTime($params['period']);
+            $year = $dt->format('Y');
+            $month = $dt->format('m');
+
+            // Check if header data does not exist
+            $headerNotExists = !DB::table('crm_visits')
+                ->where('emp_id', $params['emp_id'])
+                ->where('year', $year)
+                ->where('month', $month)
+                ->exists();
+            
+            if ($headerNotExists) {
+                // If header doesn't exist, check if details data does not exist
+                $detailNotExists = !DB::table('crm_visit_details')
+                    ->join('crm_visits', 'crm_visits.trans_no', '=', 'crm_visit_details.trans_no')
+                    ->where('crm_visits.emp_id', $params['emp_id'])
+                    ->where('crm_visit_details.account', $params['account'])
+                    ->where('crm_visit_details.visit_date', $params['period_detail'])
+                    ->exists();
+                
+                return !$detailNotExists;
+            }
+            return true;
+        } catch (\Exception $e) {
+            Log::error('Error checking visit detail: ' . $e->getMessage());
+            return false;
+        }
     }
 
     /**

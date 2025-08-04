@@ -266,29 +266,44 @@
         }
 
         function cancel() {
-            headerDxForm.resetValues();
+            const grid = $("#institusi-grid").dxDataGrid("instance");
+            if (flag_add) {
+                headerDxForm.resetValues();
+                $("#edit").dxButton("instance").option("disabled", true);
+                // Clear institusi-grid data
+                grid.option({
+                    dataSource: [],
+                    editing: {
+                        allowUpdating: false,
+                        allowAdding: false,
+                        allowDeleting: false,
+                        useIcons: true
+                    },
+                    noDataText: "No data"
+                });
+            }
+
+            if (flag_edit) {
+                $("#edit").dxButton("instance").option("disabled", false);
+                grid.option({
+                    editing: {
+                        allowUpdating: false,
+                        allowAdding: false,
+                        allowDeleting: false,
+                        useIcons: true
+                    }
+                });
+            }
+
             headerDxForm.itemOption("trans_no", "editorOptions", { disabled: true });
             headerDxForm.itemOption("transaction_date", "editorOptions", { disabled: true });
             headerDxForm.itemOption("period", "editorOptions", { disabled: true });
             headerDxForm.itemOption("remark", "editorOptions", { disabled: true });
             $("#add").dxButton("instance").option("disabled", false);
-            $("#edit").dxButton("instance").option("disabled", true);
             $("#delete").dxButton("instance").option("disabled", true);
             $("#save").dxButton("instance").option("disabled", true);
             $("#cancel").dxButton("instance").option("disabled", true);
             $("#export").dxButton("instance").option("disabled", true);
-            // Clear institusi-grid data
-            const grid = $("#institusi-grid").dxDataGrid("instance");
-            grid.option({
-                dataSource: [],
-                editing: {
-                    allowUpdating: false,
-                    allowAdding: false,
-                    allowDeleting: false,
-                    useIcons: true
-                },
-                noDataText: "No data"
-            });
             const $addDetailsBtn = $("#institusi-grid .dx-toolbar .dx-item-content.dx-toolbar-item-content .dx-button");
             if ($addDetailsBtn.length && $addDetailsBtn.dxButton("instance")) {
                 $addDetailsBtn.dxButton("instance").option("visible", false);
