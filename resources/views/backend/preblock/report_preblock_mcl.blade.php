@@ -150,17 +150,6 @@ $(function() {
             loadReportData();
         }
     });
-
-    /* $("#export").dxButton({
-        icon: 'fa fa-file-pdf-o',
-        text: "Export PDF",
-        type: 'success',
-        stylingMode: 'contained',
-        width: '120px',
-        onClick: function(e) {
-            exportReportData();
-        }
-    }); */
 });
 
 async function loadReportData() {
@@ -316,56 +305,5 @@ async function loadReportData() {
     }
 }
 
-async function exportReportData() {
-    const form = $("#report-dxform").dxForm("instance");
-    if (!form.validate().isValid) {
-        DevExpress.ui.notify({ message: "Please select a period.", width: 400, type: 'error' }, { position: "top right", direction: "down-push" }, 2000);
-        return;
-    }
-    
-    const formData = form.option("formData");
-    const date = new Date(formData.period);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    
-    $("#loadPanel").dxLoadPanel("instance").option("visible", true);
-    
-    try {
-        const response = await fetch(`${APP_BASE_URL}/crm-visits/export-pdf`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ year, month })
-        });
-
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `report-${year}-${month}.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-        
-        DevExpress.ui.notify({
-            message: `Downloading PDF for Period: ${year}-${month}`, 
-            width: 400, 
-            type: 'success'
-        }, { position: 'top right', direction: 'down-push' }, 3000);
-        
-    } catch (error) {
-        DevExpress.ui.notify({ 
-            message: 'Error exporting PDF: ' + error.message, 
-            width: 400, 
-            type: 'error'
-        }, { position: 'top right', direction: 'down-push' }, 4000);
-    } finally {
-        $("#loadPanel").dxLoadPanel("instance").option("visible", false);
-    }
-}
 </script>
 @stop
