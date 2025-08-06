@@ -282,13 +282,13 @@ async function loadReportData() {
 
         if (!flattenedData.length) {
             DevExpress.ui.notify({ 
-                message: `No data found for period: ${response.period}`, 
+                message: `${response.message}`, 
                 width: 400, 
                 type: 'warning'
             }, { position: "top right", direction: "down-push" }, 3000);
         } else {
             DevExpress.ui.notify({ 
-                message: `Successfully loaded data for period: ${response.period} (${flattenedData.length} visits)`, 
+                message: `Successfully loaded data for period: ${response.period} - ${flattenedData.length} visits`, 
                 width: 400, 
                 type: 'success'
             }, { position: "top right", direction: "down-push" }, 3000);
