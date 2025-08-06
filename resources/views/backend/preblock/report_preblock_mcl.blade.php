@@ -288,7 +288,7 @@ async function loadReportData() {
             }, { position: "top right", direction: "down-push" }, 3000);
         } else {
             DevExpress.ui.notify({ 
-                message: `Successfully loaded data for period: ${response.period} - ${flattenedData.length} visits`, 
+                message: `Successfully loaded data for period: ${response.period}`, 
                 width: 400, 
                 type: 'success'
             }, { position: "top right", direction: "down-push" }, 3000);
