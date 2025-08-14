@@ -145,13 +145,13 @@
                         fixed: true
                     },
                     { 
-                        dataField: "employee_id", 
-                        caption: "Employee ID",
+                        dataField: "employee_name", 
+                        caption: "Employee Name",
                         fixed: true
                     },
                     { 
-                        dataField: "employee_name", 
-                        caption: "Employee Name",
+                        dataField: "employee_id", 
+                        caption: "NIK Essity",
                         fixed: true
                     },
                     {
@@ -188,7 +188,7 @@
                         }
                     },
                     {
-                        dataField: "note_adjustment",
+                        dataField: "note",
                         caption: "Note Adjustment",
                         fixed: true,
                         allowEditing: true,
@@ -201,6 +201,16 @@
                         }
                     },
                     {
+                        dataField: "other_days",
+                        caption: "BR/Training/Event",
+                        dataType: "number",
+                        alignment: "left",
+                        fixed: true,
+                        calculateCellValue: function() {
+                            return 3;
+                        }
+                    },
+                    {
                         dataField: "final_total_visits",
                         caption: "Grand Total",
                         dataType: "number",
@@ -210,7 +220,7 @@
                 ],
                 showBorders: true,
                 showRowLines: true,
-                paging: { pageSize: 10 },
+                paging: { pageSize: 20 },
                 filterRow: { visible: false },
                 searchPanel: { visible: true, width: 240, placeholder: 'Search...' },
                 height: 'inherit',
@@ -232,7 +242,7 @@
                 summary: {
                     totalItems: [
                         {
-                            column: "employee_id",
+                            column: "area",
                             summaryType: "count",
                             displayFormat: "Total: {0} rows"
                         },
@@ -311,6 +321,7 @@
                             caption: `${i}`,
                             dataType: "number",
                             alignment: "center",
+                            allowEditing: false,
                             width: 50
                         });
                     }
@@ -318,10 +329,8 @@
                 
                 // Update grid columns
                 grid.option("columns", [...baseColumns, ...dayColumns]);
-                
                 // The data is already processed by the controller to include day columns
                 const processedData = response.data;
-                
                 grid.option("dataSource", processedData);
                 
                 DevExpress.ui.notify({ 

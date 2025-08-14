@@ -45,11 +45,9 @@ class WorkingDayController extends Controller
         // Query employee visits by period
         $query = EmployeeVisit::byPeriod($year, $month);
         
-        // Apply area filter if provided
         if ($area) {
-            $query->byArea($area);
+            $query->where('area', 'like', '%' . $area . '%');
         }
-        
         // Get employee visits with their details
         $employeeVisits = $query->with('visitDetails')->get();
         
@@ -84,11 +82,19 @@ class WorkingDayController extends Controller
             
             return $record;
         });
+
+        if (!$data->isEmpty()) {
+            return response()->json([
+                'success' => true,
+                'data' => $data,
+                'message' => 'Data retrieved successfully'
+            ]);
+        }
         
         return response()->json([
-            'success' => true,
-            'data' => $data,
-            'message' => 'Data retrieved successfully'
+            'success' => false,
+            'data' => [],
+            'message' => 'No data found'
         ]);
     }
 }
