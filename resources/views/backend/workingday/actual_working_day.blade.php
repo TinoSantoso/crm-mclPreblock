@@ -176,15 +176,48 @@
                         fixed: true
                     },
                     {
-                        dataField: "adjustment_from_asm",
+                        dataField: "asm_adjustment",
                         caption: "Adjustment from ASM",
                         dataType: "number",
                         alignment: "left",
                         fixed: true,
                         allowEditing: true,
-                        setCellValue: function(rowData, value) {
+                        validationRules: [{
+                            type: "numeric"
+                        }],
+                        setCellValue: async function(rowData, value) {
+                            // Allow both positive and negative numbers
                             rowData.adjustment_from_asm = value;
                             rowData.final_total_visits = (rowData.total_offline_visits + rowData.total_online_visits) + value;
+
+                            try {
+                                const response = await fetch(`${APP_BASE_URL}/actual-working-day/update-adjustment`, {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                    },
+                                    body: JSON.stringify({
+                                        employee_id: rowData.employee_id,
+                                        adjustment_value: value,
+                                        note: rowData.note_adjustment
+                                    })
+                                });
+
+                                if (!response.ok) {
+                                    throw new Error('Failed to update adjustment');
+                                }
+
+                                DevExpress.ui.notify({
+                                    message: "Adjustment updated successfully",
+                                    type: "success"
+                                }, { position: "top right", direction: "down-push" }, 2000);
+
+                            } catch (error) {
+                                DevExpress.ui.notify({
+                                    message: `Error updating adjustment: ${error.message}`,
+                                    type: "error"
+                                }, { position: "top right", direction: "down-push" }, 3000);
+                            }
                         }
                     },
                     {
@@ -194,7 +227,6 @@
                         allowEditing: true,
                         setCellValue: function(rowData, value) {
                             rowData.note_adjustment = value;
-                            // Auto-populate note if adjustment is not 0
                             if (rowData.adjustment_from_asm && rowData.adjustment_from_asm !== 0 && !value) {
                                 rowData.note_adjustment = "Adjustment made by ASM";
                             }

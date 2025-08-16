@@ -86,6 +86,8 @@ class EmployeeVisitSeeder extends Seeder
         $currentMonth = date('n');
 
         foreach ($employees as $employee) {
+            $employeeVisitRecords = [];
+            
             // Create records for last 4 months (including current month)
             for ($monthBack = 0; $monthBack < 4; $monthBack++) {
                 $targetMonth = $currentMonth - $monthBack;
@@ -97,15 +99,91 @@ class EmployeeVisitSeeder extends Seeder
                     $targetYear--;
                 }
 
-                $this->createEmployeeVisitRecord($employee, $targetYear, $targetMonth, $clients);
+                $employeeVisitRecords[] = $this->createEmployeeVisitRecord($employee, $targetYear, $targetMonth, $clients);
+            }
+            
+            // Ensure minimum grand total of 16 visits across all months
+            $this->ensureMinimumGrandTotal($employeeVisitRecords, $clients);
+        }
+    }
+
+    /**
+     * Ensure the grand total of visits across all months is at least 19
+     */
+    private function ensureMinimumGrandTotal(array $employeeVisitRecords, array $clients): void
+    {
+        $grandTotal = 0;
+        
+        // Calculate current grand total
+        foreach ($employeeVisitRecords as $record) {
+            $record->recalculateTotals();
+            $grandTotal += $record->total_offline_visits + $record->total_online_visits;
+        }
+        
+        // If grand total is less than 16, add visits to reach minimum
+        if ($grandTotal < 16) {
+            $visitsNeeded = 16 - $grandTotal;
+            
+            // Distribute additional visits across the records
+            $recordIndex = 0;
+            while ($visitsNeeded > 0) {
+                $record = $employeeVisitRecords[$recordIndex % count($employeeVisitRecords)];
+                
+                // Add one more visit to this record
+                $this->addAdditionalVisit($record, $clients);
+                $visitsNeeded--;
+                $recordIndex++;
             }
         }
     }
 
     /**
+     * Add an additional visit to an employee visit record
+     */
+    private function addAdditionalVisit(EmployeeVisit $employeeVisit, array $clients): void
+    {
+        $year = $employeeVisit->period_year;
+        $month = $employeeVisit->period_month;
+        $daysInMonth = cal_days_in_month(CAL_GREGORIAN, $month, $year);
+        
+        // Get existing visit days to avoid duplicates
+        $existingVisitDays = $employeeVisit->visitDetails()->pluck('visit_day')->toArray();
+        
+        // Find an available day for the visit
+        $attempts = 0;
+        do {
+            $visitDay = rand(1, $daysInMonth);
+            $attempts++;
+        } while (
+            (in_array($visitDay, $existingVisitDays) || $this->isWeekend($year, $month, $visitDay)) 
+            && $attempts < 50
+        );
+        
+        // If we couldn't find a weekday, use any available day
+        if ($attempts >= 50) {
+            do {
+                $visitDay = rand(1, $daysInMonth);
+                $attempts++;
+            } while (in_array($visitDay, $existingVisitDays) && $attempts < 100);
+        }
+        
+        EmployeeVisitDetail::create([
+            'employee_visit_id' => $employeeVisit->id,
+            'visit_day' => $visitDay,
+            'visit_type' => $this->getRandomVisitType(),
+            'client_name' => $clients[array_rand($clients)],
+            'visit_notes' => $this->getRandomVisitNotes(),
+            'visit_datetime' => $this->createVisitDateTime($year, $month, $visitDay),
+        ]);
+        
+        // Recalculate totals after adding the visit
+        $employeeVisit->recalculateTotals();
+    }
+
+    /**
      * Create an employee visit record with optional visit details
      */
-    private function createEmployeeVisitRecord(array $employee, int $year, int $month, array $clients): void
+    private function createEmployeeVisitRecord(array $employee, int $year, int $month, array $clients): EmployeeVisit
     {
         $standardWorkingDays = $this->getStandardWorkingDays($month, $year);
         $daysInMonth = cal_days_in_month(CAL_GREGORIAN, $month, $year);
@@ -128,9 +206,9 @@ class EmployeeVisitSeeder extends Seeder
             ]
         );
 
-        // Determine if this should be a zero-visit month (20% chance for current month)
+        // Determine if this should be a zero-visit month (reduced chance to 5% to help meet minimum total)
         $isCurrentMonth = ($year == date('Y') && $month == date('n'));
-        $shouldHaveZeroVisits = $isCurrentMonth && rand(1, 100) <= 20;
+        $shouldHaveZeroVisits = $isCurrentMonth && rand(1, 100) <= 5;
 
         if (!$shouldHaveZeroVisits) {
             $this->createVisitDetails($employeeVisit, $year, $month, $daysInMonth, $clients);
@@ -138,6 +216,8 @@ class EmployeeVisitSeeder extends Seeder
 
         // Recalculate totals
         $employeeVisit->recalculateTotals();
+        
+        return $employeeVisit;
     }
 
     /**
@@ -232,10 +312,10 @@ class EmployeeVisitSeeder extends Seeder
         $currentMonth = date('n');
         
         if ($month == $currentMonth) {
-            return rand(5, 15); // Lower range for current month
+            return rand(3, 8); // Lower range for current month but ensuring some minimum
         }
         
-        return rand(10, 20); // Normal range for past months
+        return rand(4, 12); // Adjusted range to help meet minimum total requirement
     }
 
     /**

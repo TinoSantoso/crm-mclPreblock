@@ -126,7 +126,7 @@ class EmployeeVisit extends Model
     {
         $this->total_offline_visits = $this->offlineVisits()->count();
         $this->total_online_visits = $this->onlineVisits()->count();
-        $this->final_total_visits = $this->total_visits + $this->adjustment_from_asm;
+        $this->final_total_visits = $this->total_offline_visits + $this->total_online_visits + $this->adjustment_from_asm;
         $this->save();
     }
 
