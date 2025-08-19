@@ -79,19 +79,23 @@
                                 editorType: "dxSelectBox",
                                 editorOptions: {
                                     items: [
-                                        "Northern Sumatra",
-                                        "Southern Sumatra", 
-                                        "Western Sumatra",
-                                        "Eastern Jakarta",
-                                        "West Java",
-                                        "Kalimantan",
-                                        "Northern Central Java",
-                                        "Southern Central Java",
-                                        "Northern East Java",
-                                        "Southern East Java",
-                                        "Bali Nusra",
-                                        "Far East"
+                                        { text: "All District", value: "" },
+                                        { text: "Northern Sumatra", value: "Northern Sumatra" },
+                                        { text: "Southern Sumatra", value: "Southern Sumatra" },
+                                        { text: "Western Jakarta", value: "Western Jakarta" },
+                                        { text: "Eastern Jakarta", value: "Eastern Jakarta" },
+                                        { text: "West Java", value: "West Java" },
+                                        { text: "Kalimantan", value: "Kalimantan" },
+                                        { text: "Northern Central Java", value: "Northern Central Java" },
+                                        { text: "Southern Central Java", value: "Southern Central Java" },
+                                        { text: "Northern East Java", value: "Northern East Java" },
+                                        { text: "Southern East Java", value: "Southern East Java" },
+                                        { text: "Bali Nusra", value: "Bali Nusra" },
+                                        { text: "Far East", value: "Far East" }
                                     ],
+                                    value: "",
+                                    displayExpr: "text",
+                                    valueExpr: "value",
                                     searchEnabled: true,
                                     width: 'auto'
                                 },
@@ -123,7 +127,7 @@
                 }
             });
 
-            $("#export").dxButton({
+            /* $("#export").dxButton({
                 icon: 'fa fa-file-excel-o',
                 text: "Export to Excel",
                 type: 'normal',
@@ -134,7 +138,7 @@
                         type: "warning"
                     }, { position: "top right", direction: "down-push" }, 3000);
                 }
-            });
+            }); */
 
             $("#workingday-grid").dxDataGrid({
                 dataSource: [],
@@ -159,20 +163,25 @@
                         caption: "Final Working Days",
                         dataType: "number",
                         alignment: "left",
+                        allowEditing: false,
                         fixed: true
                     },
                     {
-                        dataField: "standard_working_days",
+                        dataField: "",
                         caption: "Standard Working Days",
                         dataType: "number",
                         alignment: "left",
-                        fixed: true
+                        fixed: true,
+                        calculateCellValue: function() {
+                            return 19;
+                        }
                     },
                     {
-                        dataField: "final_total_visits",
+                        dataField: "standard_working_days",
                         caption: "Working Days with Adjustment",
                         dataType: "number",
                         alignment: "left",
+                        allowEditing: false,
                         fixed: true
                     },
                     {
@@ -185,38 +194,15 @@
                         validationRules: [{
                             type: "numeric"
                         }],
-                        setCellValue: async function(rowData, value) {
+                        setCellValue: async function(rowData, value, currentRowData) {
                             // Allow both positive and negative numbers
-                            rowData.adjustment_from_asm = value;
-                            rowData.final_total_visits = (rowData.total_offline_visits + rowData.total_online_visits) + value;
-
+                            const adjustmentValue = value || 0;
+                            
                             try {
-                                const response = await fetch(`${APP_BASE_URL}/actual-working-day/update-adjustment`, {
-                                    method: 'POST',
-                                    headers: {
-                                        'Content-Type': 'application/json',
-                                    },
-                                    body: JSON.stringify({
-                                        employee_id: rowData.employee_id,
-                                        adjustment_value: value,
-                                        note: rowData.note_adjustment
-                                    })
-                                });
-
-                                if (!response.ok) {
-                                    throw new Error('Failed to update adjustment');
-                                }
-
-                                DevExpress.ui.notify({
-                                    message: "Adjustment updated successfully",
-                                    type: "success"
-                                }, { position: "top right", direction: "down-push" }, 2000);
-
+                                await updateAdjustmentData(rowData, currentRowData, adjustmentValue, null);
                             } catch (error) {
-                                DevExpress.ui.notify({
-                                    message: `Error updating adjustment: ${error.message}`,
-                                    type: "error"
-                                }, { position: "top right", direction: "down-push" }, 3000);
+                                // Error handling is already done in the reusable function
+                                console.error('Failed to update adjustment:', error);
                             }
                         }
                     },
@@ -225,10 +211,19 @@
                         caption: "Note Adjustment",
                         fixed: true,
                         allowEditing: true,
-                        setCellValue: function(rowData, value) {
-                            rowData.note_adjustment = value;
-                            if (rowData.adjustment_from_asm && rowData.adjustment_from_asm !== 0 && !value) {
-                                rowData.note_adjustment = "Adjustment made by ASM";
+                        setCellValue: async function(rowData, value, currentRowData) {
+                            let noteValue = value;
+                            
+                            // Apply default note logic if needed
+                            if (currentRowData.adjustment_from_asm && currentRowData.adjustment_from_asm !== 0 && !value) {
+                                noteValue = "Adjustment made by ASM";
+                            }
+                            
+                            try {
+                                await updateAdjustmentData(rowData, currentRowData, null, noteValue);
+                            } catch (error) {
+                                // Error handling is already done in the reusable function
+                                console.error('Failed to update note:', error);
                             }
                         }
                     },
@@ -237,17 +232,22 @@
                         caption: "BR/Training/Event",
                         dataType: "number",
                         alignment: "left",
+                        allowEditing: false,
                         fixed: true,
                         calculateCellValue: function() {
                             return 3;
                         }
                     },
                     {
-                        dataField: "final_total_visits",
+                        dataField: "grand_total",
                         caption: "Grand Total",
                         dataType: "number",
                         alignment: "left",
-                        fixed: true
+                        allowEditing: false,
+                        fixed: true,
+                        calculateCellValue: function(rowData) {
+                            return (rowData.standard_working_days || 0) - 3;
+                        }
                     }
                 ],
                 showBorders: true,
@@ -268,17 +268,10 @@
                 },
                 export: {
                     enabled: true,
-                    fileName: "Actual Working Days",
-                    allowExportSelectedData: true
+                    allowExportSelectedData: false
                 },
-                summary: {
-                    totalItems: [
-                        {
-                            column: "area",
-                            summaryType: "count",
-                            displayFormat: "Total: {0} rows"
-                        },
-                    ]
+                onExporting: function(e) {
+                    e.cancel = true;
                 }
             });
 
@@ -294,6 +287,87 @@
                 hideOnOutsideClick: false
             });
         });
+
+        // Reusable function to update adjustment and note via API
+        async function updateAdjustmentData(rowData, currentRowData, adjustmentValue = null, noteValue = null) {
+            try {
+                const visit_id = currentRowData.id;
+                
+                if (!visit_id) {
+                    console.error('Available currentRowData keys:', Object.keys(currentRowData || {}));
+                    throw new Error('Visit ID not found in row data');
+                }
+
+                // Use existing values if not provided
+                const finalAdjustmentValue = adjustmentValue !== null ? adjustmentValue : (currentRowData.asm_adjustment || 0);
+                const finalNoteValue = noteValue !== null ? noteValue : (currentRowData.note || '');
+                
+                const response = await fetch(`${APP_BASE_URL}/actual-working-day/update-adjustment`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    body: JSON.stringify({
+                        id: visit_id,
+                        adjustment_value: finalAdjustmentValue,
+                        note: finalNoteValue
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to update adjustment data');
+                }
+
+                // Update the row data after successful server update
+                rowData.asm_adjustment = finalAdjustmentValue;
+                rowData.note = finalNoteValue;
+                rowData.final_total_visits = (currentRowData.total_offline_visits + currentRowData.total_online_visits) + finalAdjustmentValue;
+                // Calculate base working days for the current month
+                function calculateBaseWorkingDays() {
+                    const form = $("#workingday-dxform").dxForm("instance");
+                    const formData = form.option("formData");
+                    if (formData.period) {
+                        const date = new Date(formData.period);
+                        const year = date.getFullYear();
+                        const month = date.getMonth() + 1;
+                        const daysInMonth = new Date(year, month, 0).getDate();
+                        
+                        // Count working days (excluding weekends)
+                        let workingDays = 0;
+                        for (let i = 1; i <= daysInMonth; i++) {
+                            const dayDate = new Date(year, month - 1, i);
+                            const dayOfWeek = dayDate.getDay();
+                            if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+                                workingDays++;
+                            }
+                        }
+                        return workingDays;
+                    }
+                    return 19; // fallback
+                }
+                
+                const baseWorkingDays = calculateBaseWorkingDays();
+                rowData.standard_working_days = baseWorkingDays + finalAdjustmentValue;
+                
+                $("#workingday-grid").dxDataGrid("instance").refresh();
+
+                DevExpress.ui.notify({
+                    message: "Data updated successfully",
+                    type: "success",
+                    width: 600
+                }, { position: "top right", direction: "down-push" }, 2000);
+            } catch (error) {
+                DevExpress.ui.notify({
+                    message: `Error updating data: ${error.message}`,
+                    type: "error",
+                    width: 600
+                }, { position: "top right", direction: "down-push" }, 3000);
+                
+                // Re-throw the error so calling code can handle it
+                throw error;
+            }
+        }
 
         async function loadData() {
             const form = $("#workingday-dxform").dxForm("instance");
@@ -361,9 +435,32 @@
                 
                 // Update grid columns
                 grid.option("columns", [...baseColumns, ...dayColumns]);
+                
                 // The data is already processed by the controller to include day columns
                 const processedData = response.data;
                 grid.option("dataSource", processedData);
+                
+                // Set filename for export based on period and area
+                const periodText = `${year}-${String(month).padStart(2, '0')}`;
+                const areaText = formData.area ? `${formData.area.replace(/[^a-zA-Z0-9]/g, '_')}` : 'All_District';
+                const fileName = `Working Days ${areaText}_${periodText}.xlsx`;
+                
+                // Update grid export configuration
+                grid.option("onExporting", function(e) {
+                    const workbook = new ExcelJS.Workbook();
+                    const worksheet = workbook.addWorksheet('Working Days');
+                    
+                    DevExpress.excelExporter.exportDataGrid({
+                        component: e.component,
+                        worksheet: worksheet,
+                        autoFilterEnabled: true
+                    }).then(function() {
+                        workbook.xlsx.writeBuffer().then(function(buffer) {
+                            saveAs(new Blob([buffer], { type: 'application/octet-stream' }), fileName);
+                        });
+                    });
+                    e.cancel = true;
+                });
                 
                 DevExpress.ui.notify({ 
                     message: `Loaded: ${response.data.length} record(s)`, 

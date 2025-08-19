@@ -6,7 +6,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Models\CrmVisit;
-use App\Models\CrmVisitDetail;
 use Dompdf\Dompdf;
 use Dompdf\Options;
 use Illuminate\Support\Carbon;

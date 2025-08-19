@@ -71,4 +71,6 @@ $router->group(['prefix' => 'api', 'middleware' => ['session.token']], function 
     
     Route::get('/actual-working-day', 'Backend\WorkingDayController@index');
     Route::get('/actual-working-day/data', 'Backend\WorkingDayController@getData');
+    Route::post('/actual-working-day/update-adjustment', 'Backend\WorkingDayController@updateAdjustment');
+
 });

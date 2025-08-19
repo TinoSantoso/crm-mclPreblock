@@ -59,7 +59,6 @@ class WorkingDayController extends Controller
             // Get the visit days data
             $visitDays = $visit->getVisitsByDayArray();
             
-            // Create the base record
             $record = [
                 'id' => $visit->id,
                 'employee_id' => $visit->employee_id,
@@ -97,4 +96,49 @@ class WorkingDayController extends Controller
             'message' => 'No data found'
         ]);
     }
+
+    public function updateAdjustment(Request $request)
+    {
+        try {
+            $validator = \Validator::make($request->all(), [
+                'id' => 'required|integer',
+                'adjustment_value' => 'required|numeric',
+                'note' => 'nullable|string'
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation failed',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            $visit = EmployeeVisit::find($request->id);
+            
+            if (!$visit) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Employee visit record not found'
+                ], 404);
+            }
+
+            $visit->adjustment_from_asm = $request->adjustment_value;
+            $visit->note_adjustment = $request->note ?? 'Adjustment made by ASM';
+            $visit->final_total_visits = $visit->total_offline_visits + $visit->total_online_visits + $request->adjustment_value;
+            $visit->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Adjustment updated successfully'
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update adjustment: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
 }
