@@ -298,31 +298,6 @@
                     throw new Error('Visit ID not found in row data');
                 }
 
-                // Use existing values if not provided
-                const finalAdjustmentValue = adjustmentValue !== null ? adjustmentValue : (currentRowData.asm_adjustment || 0);
-                const finalNoteValue = noteValue !== null ? noteValue : (currentRowData.note || '');
-                
-                const response = await fetch(`${APP_BASE_URL}/actual-working-day/update-adjustment`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    },
-                    body: JSON.stringify({
-                        id: visit_id,
-                        adjustment_value: finalAdjustmentValue,
-                        note: finalNoteValue
-                    })
-                });
-
-                if (!response.ok) {
-                    throw new Error('Failed to update adjustment data');
-                }
-
-                // Update the row data after successful server update
-                rowData.asm_adjustment = finalAdjustmentValue;
-                rowData.note = finalNoteValue;
-                rowData.final_total_visits = (currentRowData.total_offline_visits + currentRowData.total_online_visits) + finalAdjustmentValue;
                 // Calculate base working days for the current month
                 function calculateBaseWorkingDays() {
                     const form = $("#workingday-dxform").dxForm("instance");
@@ -346,8 +321,34 @@
                     }
                     return 19; // fallback
                 }
-                
+
+                // Use existing values if not provided
+                const finalAdjustmentValue = adjustmentValue !== null ? adjustmentValue : (currentRowData.asm_adjustment || 0);
+                const finalNoteValue = noteValue !== null ? noteValue : (currentRowData.note || '');
                 const baseWorkingDays = calculateBaseWorkingDays();
+                
+                const response = await fetch(`${APP_BASE_URL}/actual-working-day/update-adjustment`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    body: JSON.stringify({
+                        id: visit_id,
+                        adjustment_value: finalAdjustmentValue,
+                        note: finalNoteValue,
+                        working_days: baseWorkingDays
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to update adjustment data');
+                }
+
+                // Update the row data after successful server update
+                rowData.asm_adjustment = finalAdjustmentValue;
+                rowData.note = finalNoteValue;
+                rowData.final_total_visits = (currentRowData.total_offline_visits + currentRowData.total_online_visits) + finalAdjustmentValue;
                 rowData.standard_working_days = baseWorkingDays + finalAdjustmentValue;
                 
                 $("#workingday-grid").dxDataGrid("instance").refresh();

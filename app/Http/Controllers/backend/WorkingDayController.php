@@ -125,6 +125,7 @@ class WorkingDayController extends Controller
 
             $visit->adjustment_from_asm = $request->adjustment_value;
             $visit->note_adjustment = $request->note ?? 'Adjustment made by ASM';
+            $visit->standard_working_days = $request->working_days + $request->adjustment_value;
             $visit->final_total_visits = $visit->total_offline_visits + $visit->total_online_visits + $request->adjustment_value;
             $visit->save();
 
