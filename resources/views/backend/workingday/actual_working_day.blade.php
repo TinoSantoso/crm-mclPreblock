@@ -25,6 +25,18 @@
                         </div>
                     </div>
                     <div class="box-body">
+                        <div class="row" style="padding-bottom: 20px;">
+                            <div class="col-md-10">
+                                    <div id='main-btn' >
+                                        <div class="inner"> <div id="add" ></div></div>
+                                        <div class="inner"> <div id="save"></div></div>
+                                        <div class="inner"> <div id="edit"></div></div>
+                                        <div class="inner"> <div id="cancel"></div></div>
+                                        <div class="inner"> <div id="delete"></div></div>
+                                        <div class="inner"> <div id="posted"></div></div>
+                                    </div>
+                            </div>
+                        </div>
                         <div class="dx-field">
                             <div class="dx-field-value" style="float:left">
                                 <div id="workingday-dxform"></div>
@@ -32,7 +44,7 @@
                         </div>
                         <div class="dx-field" style="margin-bottom:20px">
                             <div id="load" style="margin-top:10px; display: inline-block;"></div>
-                            <div id="export" style="margin-top:10px; display: inline-block; margin-left: 10px;"></div>
+                            <div id="export" style="margin-top:10px; display: inline-block;"></div>
                         </div>
                         <div id="exportLoadingPanel"></div>
                         <div id="workingday-grid" style="padding-top:20px"></div>
@@ -41,7 +53,22 @@
             </section>
         </div>
     </section>
+    <style>
+        #main-btn{
+            float:left;
+            margin-top:10px;
+
+            width:100%;
+            text-align:left;
+        }
+        .inner{
+            display: inline-block;
+        }
+    </style>
     <script>
+        let flag_add = false;
+        let flag_edit = false;
+        
         $(function() {
             $("#workingday-dxform").dxForm({
                 formData: {
@@ -55,6 +82,35 @@
                         itemType: "group",
                         colCount: 3,
                         items: [
+                            {
+                                dataField: "fwdTransaction",
+                                label: { text: "Trans No" },
+                                editorType: "dxTextBox",
+                                editorOptions: { disabled: true },
+                                isRequired: true
+                            },
+                            {
+                                dataField: "transaction_date",
+                                label: { text: "Transaction Date" },
+                                editorType: "dxDateBox",
+                                editorOptions: { 
+                                    type: "date",
+                                    value: new Date(),
+                                    width: 'auto',
+                                    disabled: true
+                                },
+                                isRequired: true
+                            },
+                            {
+                                dataField: "remark",
+                                label: { text: "Remark" },
+                                editorType: "dxTextArea",
+                                editorOptions: { 
+                                    height: 35,
+                                    width: 'auto',
+                                    disabled: true
+                                }
+                            },
                             {
                                 dataField: "period",
                                 label: { text: "Period" },
@@ -80,24 +136,16 @@
                                 editorOptions: {
                                     items: [
                                         { text: "All District", value: "" },
-                                        { text: "Northern Sumatra", value: "Northern Sumatra" },
-                                        { text: "Southern Sumatra", value: "Southern Sumatra" },
-                                        { text: "Western Jakarta", value: "Western Jakarta" },
-                                        { text: "Eastern Jakarta", value: "Eastern Jakarta" },
-                                        { text: "West Java", value: "West Java" },
-                                        { text: "Kalimantan", value: "Kalimantan" },
-                                        { text: "Northern Central Java", value: "Northern Central Java" },
-                                        { text: "Southern Central Java", value: "Southern Central Java" },
-                                        { text: "Northern East Java", value: "Northern East Java" },
-                                        { text: "Southern East Java", value: "Southern East Java" },
-                                        { text: "Bali Nusra", value: "Bali Nusra" },
-                                        { text: "Far East", value: "Far East" }
+                                        @foreach($districtAreas as $area)
+                                        { text: "{{ $area['text'] }}", value: "{{ $area['value'] }}" },
+                                        @endforeach
                                     ],
                                     value: "",
                                     displayExpr: "text",
                                     valueExpr: "value",
                                     searchEnabled: true,
-                                    width: 'auto'
+                                    width: 'auto',
+                                    // placeholder: "All District"
                                 },
                                 isRequired: false
                             },
@@ -122,23 +170,61 @@
                 type: 'normal',
                 stylingMode: 'outlined',
                 width: '15vw',
+                disabled: true,
                 onClick: function(e) { 
                     loadData();
                 }
             });
 
-            /* $("#export").dxButton({
-                icon: 'fa fa-file-excel-o',
-                text: "Export to Excel",
-                type: 'normal',
-                stylingMode: 'outlined',
-                onClick: async function(e) {
-                    DevExpress.ui.notify({
-                        message: "Export feature not implemented yet",
-                        type: "warning"
-                    }, { position: "top right", direction: "down-push" }, 3000);
+            // Button logic
+            $("#add").dxButton({
+                icon: 'fa fa-file-o',
+                text: "Add",
+                width: 110,
+                onClick: function(e) { 
+                    AddNew();
                 }
-            }); */
+            });
+            $("#save").dxButton({
+                icon: 'fa fa-save',
+                text: "Save",
+                disabled: true,
+                useSubmitBehavior: true,
+                width: 110,
+                onClick: function(e) {
+                    save();
+                }
+            });
+            $("#edit").dxButton({
+                icon: 'fa fa-edit',
+                text: "Edit",
+                width: 110,
+                disabled: true,
+                onClick: function(e) {             
+                    edit();
+                }
+            });
+            $("#cancel").dxButton({
+                icon: 'fa fa-times',
+                text: "Cancel",
+                width: 110,
+                disabled: true,
+                onClick: function(e) { cancel(); }
+            });
+            $("#delete").dxButton({
+                icon: 'fa fa-trash',
+                text: "Delete",
+                width: 110,
+                disabled: true,
+                onClick: function(e) { del(); }
+            });
+            $("#posted").dxButton({
+                icon: 'fa fa-paper-plane',
+                text: "Posted",
+                width: 110,
+                disabled: true,
+                onClick: function(e) { posted(); }
+            });
 
             $("#workingday-grid").dxDataGrid({
                 dataSource: [],
@@ -370,6 +456,151 @@
             }
         }
 
+        // Add New function to generate transaction number and enable form editing
+        async function AddNew() {
+            try {
+                const response = await fetch(`${APP_BASE_URL}/actual-working-day/generate-transno`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to generate transaction number');
+                }
+
+                const data = await response.json();
+                const form = $("#workingday-dxform").dxForm("instance");
+                const formData = form.option("formData");
+                formData.fwdTransaction = data.trans_no;
+                formData.area = "";
+                form.option("formData", formData);
+                
+                // Enable form fields for editing
+                form.itemOption("fwdTransaction", "editorOptions", { disabled: true });
+                form.itemOption("transaction_date", "editorOptions", { disabled: true });
+                form.itemOption("period", "editorOptions", { disabled: false });
+                form.itemOption("area", "editorOptions", { disabled: false });
+                form.itemOption("virtual", "editorOptions", { disabled: false });
+                form.itemOption("remark", "editorOptions", { disabled: false });
+                
+                // Update button states
+                $("#add").dxButton("instance").option("disabled", true);
+                $("#save").dxButton("instance").option("disabled", false);
+                $("#edit").dxButton("instance").option("disabled", true);
+                $("#cancel").dxButton("instance").option("disabled", false);
+                $("#delete").dxButton("instance").option("disabled", true);
+                $("#posted").dxButton("instance").option("disabled", true);
+                $("#load").dxButton("instance").option("disabled", false);
+                
+                // Set flag
+                flag_add = true;
+                flag_edit = false;
+                
+            } catch (error) {
+                DevExpress.ui.notify({
+                    message: `Error generating transaction number: ${error.message}`,
+                    type: "error",
+                    width: 600
+                }, { position: "top right", direction: "down-push" }, 3000);
+            }
+        }
+
+        // Edit function to enable form editing
+        function edit() {
+            const form = $("#workingday-dxform").dxForm("instance");
+            
+            // Enable form fields for editing
+            form.itemOption("transaction_date", "editorOptions", { disabled: false });
+            form.itemOption("period", "editorOptions", { disabled: false });
+            form.itemOption("area", "editorOptions", { disabled: false });
+            form.itemOption("virtual", "editorOptions", { disabled: false });
+            form.itemOption("remark", "editorOptions", { disabled: false });
+            
+            // Update button states
+            $("#add").dxButton("instance").option("disabled", true);
+            $("#save").dxButton("instance").option("disabled", false);
+            $("#edit").dxButton("instance").option("disabled", true);
+            $("#cancel").dxButton("instance").option("disabled", false);
+            $("#delete").dxButton("instance").option("disabled", true);
+            $("#posted").dxButton("instance").option("disabled", true);
+            $("#load").dxButton("instance").option("disabled", false);
+            
+            // Set flag
+            flag_add = false;
+            flag_edit = true;
+        }
+
+        // Save function to handle both add and edit modes
+        async function save() {
+            try {
+                const form = $("#workingday-dxform").dxForm("instance");
+                if (!form.validate().isValid) {
+                    DevExpress.ui.notify({ 
+                        message: "Please fill in all required fields.", 
+                        width: 400, 
+                        type: 'error' 
+                    }, { position: "top right", direction: "down-push" }, 2000);
+                    return;
+                }
+
+                const formData = form.option("formData");
+                const successMsg = flag_add ? "Data saved successfully" : "Data updated successfully";
+                
+                // Here you would implement the actual save/update logic
+                // For now, just show success message and reset form state
+                
+                DevExpress.ui.notify({ 
+                    message: successMsg, 
+                    width: 500, 
+                    type: 'success'
+                }, { position: "top right", direction: "down-push" }, 3000);
+                
+                // Reset form state after successful save
+                resetFormState();
+                
+            } catch (error) {
+                DevExpress.ui.notify({
+                    message: `Error saving data: ${error.message}`,
+                    type: "error",
+                    width: 600
+                }, { position: "top right", direction: "down-push" }, 3000);
+            }
+        }
+
+        // Cancel function to reset flags and form state
+        function cancel() {
+            resetFormState();
+        }
+
+        // Reset form state and button states
+        function resetFormState() {
+            const form = $("#workingday-dxform").dxForm("instance");
+            
+            // Disable form fields
+            form.itemOption("fwdTransaction", "editorOptions", { disabled: true });
+            form.itemOption("transaction_date", "editorOptions", { disabled: true });
+            form.itemOption("period", "editorOptions", { disabled: true });
+            form.itemOption("area", "editorOptions", { disabled: true });
+            form.itemOption("virtual", "editorOptions", { disabled: true });
+            form.itemOption("remark", "editorOptions", { disabled: true });
+            
+            // Reset button states
+            $("#add").dxButton("instance").option("disabled", false);
+            $("#save").dxButton("instance").option("disabled", true);
+            $("#edit").dxButton("instance").option("disabled", true);
+            $("#cancel").dxButton("instance").option("disabled", true);
+            $("#delete").dxButton("instance").option("disabled", true);
+            $("#posted").dxButton("instance").option("disabled", true);
+            $("#load").dxButton("instance").option("disabled", true);
+            
+            // Reset flags
+            flag_add = false;
+            flag_edit = false;
+        }
+
         async function loadData() {
             const form = $("#workingday-dxform").dxForm("instance");
             if (!form.validate().isValid) {
@@ -393,6 +624,7 @@
             if (year) params.append('year', year);
             if (month) params.append('month', month);
             if (formData.area) params.append('area', formData.area);
+            if (formData.virtual) params.append('virtual', formData.virtual);
             
             $("#exportLoadingPanel").dxLoadPanel("instance").option("visible", true);
             

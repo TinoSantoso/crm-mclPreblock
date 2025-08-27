@@ -19,6 +19,9 @@ class DatabaseSeeder extends Seeder
             CrmDetailsSeeder::class,
             SalesCustomerReportsSeeder::class,
             EmployeeVisitSeeder::class,
+            FwdDistrictAreasSeeder::class,
+            DimPeriodSeeder::class,
+            FwdCrmVisitsSeeder::class,
         ]);
     }
 }
