@@ -1022,6 +1022,83 @@
             }
         }
 
+        function del() {
+            const form = $("#workingday-dxform").dxForm("instance");
+            const formData = form.option("formData");
+            
+            if (!formData.fwdTransaction) {
+                DevExpress.ui.notify({ 
+                    message: "No transaction selected for deletion.", 
+                    width: 400, 
+                    type: "warning"
+                }, { position: "top right", direction: "down-push" }, 3000);
+                return;
+            }
+
+            bootbox.confirm({
+                title: "Delete Confirmation",
+                message: `Are you sure you want to delete transaction <strong>${formData.fwdTransaction}</strong>?<br><br>This action cannot be undone.`,
+                buttons: {
+                    confirm: {
+                        label: 'Yes',
+                        className: 'btn-danger'
+                    },
+                    cancel: {
+                        label: 'No',
+                        className: 'btn-secondary'
+                    }
+                },
+                callback: function(result) {
+                    if(result) {
+                        $.ajax({
+                            url: `${APP_BASE_URL}/actual-working-day/destroy`,
+                            method: 'DELETE',
+                            contentType: 'application/json',
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                            },
+                            data: JSON.stringify({
+                                transNo: formData.fwdTransaction
+                            }),
+                            success: function(res) {
+                                if(res.success) {
+                                    DevExpress.ui.notify({ 
+                                        message: `Working day data deleted successfully!`, 
+                                        width: 500, 
+                                        type: 'success'
+                                    }, { position: "top right", direction: "down-push" }, 3000);
+                                    
+                                    // Refresh the list grid after successful deletion
+                                    loadListData();
+                                    
+                                    // Reset form state after deletion
+                                    resetFormState();
+                                } else {
+                                    DevExpress.ui.notify({ 
+                                        message: res.message || 'Failed to delete working day data', 
+                                        width: 500, 
+                                        type: 'error'
+                                    }, { position: "top right", direction: "down-push" }, 3000);
+                                }
+                            },
+                            error: function(xhr, status, error) {
+                                let errorMessage = 'Failed to delete working day data';
+                                if (xhr.responseJSON && xhr.responseJSON.message) {
+                                    errorMessage = xhr.responseJSON.message;
+                                }
+                                DevExpress.ui.notify({ 
+                                    message: errorMessage, 
+                                    width: 500, 
+                                    type: 'error'
+                                }, { position: "top right", direction: "down-push" }, 3000);
+                            }
+                        });
+                    }
+                }
+            });
+        }
+
         async function loadData() {
             const form = $("#workingday-dxform").dxForm("instance");
             if (!form.validate().isValid) {
@@ -1093,8 +1170,6 @@
                 
                 // Update grid columns
                 grid.option("columns", [...baseColumns, ...dayColumns]);
-                
-                // The data is already processed by the controller to include day columns
                 const processedData = response.data;
                 grid.option("dataSource", processedData);
                 

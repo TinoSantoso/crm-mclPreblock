@@ -69,47 +69,7 @@ class WorkingDayController extends Controller
                 $areaFilter = "AND (" . implode(' OR ', $areaConditions) . ")";
             }
             
-            $sql = "
-                SELECT *, 
-                       CONCAT('District ', ma.district_seq, ' - ', ma.area_name) as District
-                FROM (
-                    SELECT * FROM (
-                        SELECT
-                            Year, Month, Day, employee_name, 
-                            MAX(Count) as Act_Count, sales_hierarchy
-                        FROM (
-                            SELECT 
-                                YEAR(start_time) AS Year, 
-                                MONTH(start_time) AS Month,
-                                DAY(start_time) AS Day, 
-                                employee_name, 
-                                1 as Count,
-                                sales_hierarchy
-                            FROM fwd_crm_visits
-                            WHERE status = 'Completed' 
-                                AND visit_type = 'Account Visit' 
-                                AND is_phone_call = {$virtual}
-                        ) activities
-                        WHERE Year = {$year} 
-                            AND Month = {$month} 
-                            {$areaFilter}
-                        GROUP BY Year, Month, employee_name, Day, sales_hierarchy
-                    ) a
-                    
-                    UNION ALL
-                    
-                    SELECT {$year}, {$month}, yy.Day, '', 1, ''
-                    FROM (
-                        SELECT DAY(full_date) as Day
-                        FROM dim_period
-                        WHERE year_num = {$year} AND month_num = {$month}
-                    ) yy
-                ) as wadaw
-                LEFT JOIN fwd_district_areas ma ON SUBSTRING(sales_hierarchy, 10, 2) = ma.area_code
-                WHERE employee_name <> '' AND sales_hierarchy <> ''
-                ORDER BY employee_name, Day
-            ";
-            
+            $sql = $this->getWorkingDayVisitsQuery($year, $month, $virtual, $areaFilter);
             $rawData = DB::select($sql);
             
             if (empty($rawData)) {
@@ -120,51 +80,7 @@ class WorkingDayController extends Controller
                 ]);
             }
             
-            // Group data by employee and transform for grid
-            $groupedData = [];
-            foreach ($rawData as $row) {
-                $key = $row->employee_name . '_' . $row->sales_hierarchy;
-                if (!isset($groupedData[$key])) {
-                    $groupedData[$key] = [
-                        'employee_name' => $row->employee_name,
-                        'sales_hierarchy' => $row->sales_hierarchy,
-                        'district' => $row->District ?? '',
-                        'year' => $row->Year,
-                        'month' => $row->Month,
-                        'days' => []
-                    ];
-                }
-                if ($row->Day) {
-                    $groupedData[$key]['days'][$row->Day] = $row->Act_Count ?? 0;
-                }
-            }
-            
-            // Transform to final format
-            $data = [];
-            foreach ($groupedData as $employee) {
-                $record = [
-                    'employee_name' => $employee['employee_name'],
-                    'area' => $employee['district'],
-                    'sales_hierarchy' => $employee['sales_hierarchy'],
-                    'year' => $employee['year'],
-                    'month' => $employee['month'],
-                    'standard_working_days' => $standardWorkingDays,
-                    'total_offline_visits' => 0,
-                    'total_online_visits' => 0,
-                    'asm_adjustment' => 0,
-                    'note' => '',
-                    'other_days' => 3,
-                    'final_total_visits' => array_sum($employee['days'])
-                ];
-                
-                // Add day columns
-                $daysInMonth = cal_days_in_month(CAL_GREGORIAN, $employee['month'], $employee['year']);
-                for ($i = 1; $i <= $daysInMonth; $i++) {
-                    $record["day_$i"] = $employee['days'][$i] ?? 0;
-                }
-                
-                $data[] = $record;
-            }
+            $data = $this->transformWorkingDayData($rawData, $standardWorkingDays);
             
             return response()->json([
                 'success' => true,
@@ -379,47 +295,7 @@ class WorkingDayController extends Controller
                     $areaFilter = "AND sales_hierarchy LIKE '%{$area}%'";
                 }
                 
-                $sql = "
-                    SELECT *, 
-                           CONCAT('District ', ma.district_seq, ' - ', ma.area_name) as District
-                    FROM (
-                        SELECT * FROM (
-                            SELECT
-                                Year, Month, Day, employee_name, 
-                                MAX(Count) as Act_Count, sales_hierarchy
-                            FROM (
-                                SELECT 
-                                    YEAR(start_time) AS Year, 
-                                    MONTH(start_time) AS Month,
-                                    DAY(start_time) AS Day, 
-                                    employee_name, 
-                                    1 as Count,
-                                    sales_hierarchy
-                                FROM fwd_crm_visits
-                                WHERE status = 'Completed' 
-                                    AND visit_type = 'Account Visit' 
-                                    AND is_phone_call = {$virtual}
-                            ) activities
-                            WHERE Year = {$year} 
-                                AND Month = {$month} 
-                                {$areaFilter}
-                            GROUP BY Year, Month, employee_name, Day, sales_hierarchy
-                        ) a
-                        
-                        UNION ALL
-                        
-                        SELECT {$year}, {$month}, yy.Day, '', 1, ''
-                        FROM (
-                            SELECT DAY(full_date) as Day
-                            FROM dim_period
-                            WHERE year_num = {$year} AND month_num = {$month}
-                        ) yy
-                    ) as wadaw
-                    LEFT JOIN fwd_district_areas ma ON SUBSTRING(sales_hierarchy, 10, 2) = ma.area_code
-                    WHERE employee_name <> '' AND sales_hierarchy <> ''
-                    ORDER BY employee_name, Day
-                ";
-                
+                $sql = $this->getWorkingDayVisitsQuery($year, $month, $virtual, $areaFilter);
                 $rawData = DB::select($sql);
                 
                 if (empty($rawData)) {
@@ -433,61 +309,14 @@ class WorkingDayController extends Controller
                     ]);
                 }
                 
-                // Group data by employee and transform for grid
-                $groupedData = [];
-                foreach ($rawData as $row) {
-                    $key = $row->employee_name . '_' . $row->sales_hierarchy;
-                    if (!isset($groupedData[$key])) {
-                        $groupedData[$key] = [
-                            'employee_name' => $row->employee_name,
-                            'sales_hierarchy' => $row->sales_hierarchy,
-                            'district' => $row->District ?? '',
-                            'year' => $row->Year,
-                            'month' => $row->Month,
-                            'days' => []
-                        ];
-                    }
-                    if ($row->Day) {
-                        $groupedData[$key]['days'][$row->Day] = $row->Act_Count ?? 0;
-                    }
-                }
-                
                 // Get existing adjustments from fwd_dtl
                 $adjustments = DB::table('fwd_dtl')
                     ->where('transNo', $transNo)
                     ->get()
-                    ->keyBy('empName');
+                    ->keyBy('empName')
+                    ->toArray();
                 
-                // Transform to final format
-                $workingDayData = [];
-                foreach ($groupedData as $employee) {
-                    $empName = $employee['employee_name'];
-                    $adjustment = $adjustments->get($empName);
-                    
-                    $record = [
-                        'employee_name' => $empName,
-                        'area' => $employee['district'],
-                        'sales_hierarchy' => $employee['sales_hierarchy'],
-                        'employee_id' => '',
-                        'year' => $employee['year'],
-                        'month' => $employee['month'],
-                        'standard_working_days' => $standardWorkingDays,
-                        'total_offline_visits' => 0,
-                        'total_online_visits' => 0,
-                        'asm_adjustment' => $adjustment ? ($adjustment->adjustment ?? 0) : 0,
-                        'note' => $adjustment ? ($adjustment->notes ?? '') : '',
-                        'other_days' => 3,
-                        'final_total_visits' => array_sum($employee['days'])
-                    ];
-                    
-                    // Add day columns
-                    $daysInMonth = cal_days_in_month(CAL_GREGORIAN, $employee['month'], $employee['year']);
-                    for ($i = 1; $i <= $daysInMonth; $i++) {
-                        $record["day_$i"] = $employee['days'][$i] ?? 0;
-                    }
-                    
-                    $workingDayData[] = $record;
-                }
+                $workingDayData = $this->transformWorkingDayData($rawData, $standardWorkingDays, $adjustments);
 
                 return response()->json([
                     'success' => true,
@@ -628,6 +457,122 @@ class WorkingDayController extends Controller
     }
 
     /**
+     * Get working day visits query with filters
+     *
+     * @param int $year
+     * @param int $month
+     * @param int $virtual
+     * @param string $areaFilter
+     * @return string
+     */
+    private function getWorkingDayVisitsQuery(int $year, int $month, int $virtual, string $areaFilter): string
+    {
+        return "
+            SELECT *, 
+                   CONCAT('District ', ma.district_seq, ' - ', ma.area_name) as District
+            FROM (
+                SELECT * FROM (
+                    SELECT
+                        Year, Month, Day, employee_name, 
+                        MAX(Count) as Act_Count, sales_hierarchy
+                    FROM (
+                        SELECT 
+                            YEAR(start_time) AS Year, 
+                            MONTH(start_time) AS Month,
+                            DAY(start_time) AS Day, 
+                            employee_name, 
+                            1 as Count,
+                            sales_hierarchy
+                        FROM fwd_crm_visits
+                        WHERE status = 'Completed' 
+                            AND visit_type = 'Account Visit' 
+                            AND is_phone_call = {$virtual}
+                    ) activities
+                    WHERE Year = {$year} 
+                        AND Month = {$month} 
+                        {$areaFilter}
+                    GROUP BY Year, Month, employee_name, Day, sales_hierarchy
+                ) a
+                
+                UNION ALL
+                
+                SELECT {$year}, {$month}, yy.Day, '', 1, ''
+                FROM (
+                    SELECT DAY(full_date) as Day
+                    FROM dim_period
+                    WHERE year_num = {$year} AND month_num = {$month}
+                ) yy
+            ) as wadaw
+            LEFT JOIN fwd_district_areas ma ON SUBSTRING(sales_hierarchy, 10, 2) = ma.area_code
+            WHERE employee_name <> '' AND sales_hierarchy <> ''
+            ORDER BY employee_name, Day
+        ";
+    }
+
+    /**
+     * Transform raw working day data to grid format
+     *
+     * @param array $rawData
+     * @param int $standardWorkingDays
+     * @param array $adjustments
+     * @return array
+     */
+    private function transformWorkingDayData(array $rawData, int $standardWorkingDays, array $adjustments = []): array
+    {
+        // Group data by employee
+        $groupedData = [];
+        foreach ($rawData as $row) {
+            $key = $row->employee_name . '_' . $row->sales_hierarchy;
+            if (!isset($groupedData[$key])) {
+                $groupedData[$key] = [
+                    'employee_name' => $row->employee_name,
+                    'sales_hierarchy' => $row->sales_hierarchy,
+                    'district' => $row->District ?? '',
+                    'year' => $row->Year,
+                    'month' => $row->Month,
+                    'days' => []
+                ];
+            }
+            if ($row->Day) {
+                $groupedData[$key]['days'][$row->Day] = $row->Act_Count ?? 0;
+            }
+        }
+
+        // Transform to final format
+        $data = [];
+        foreach ($groupedData as $employee) {
+            $empName = $employee['employee_name'];
+            $adjustment = $adjustments[$empName] ?? null;
+            
+            $record = [
+                'employee_name' => $empName,
+                'area' => $employee['district'],
+                'sales_hierarchy' => $employee['sales_hierarchy'],
+                'employee_id' => '',
+                'year' => $employee['year'],
+                'month' => $employee['month'],
+                'standard_working_days' => $standardWorkingDays,
+                'total_offline_visits' => 0,
+                'total_online_visits' => 0,
+                'asm_adjustment' => $adjustment ? ($adjustment->adjustment ?? 0) : 0,
+                'note' => $adjustment ? ($adjustment->notes ?? '') : '',
+                'other_days' => 3,
+                'final_total_visits' => array_sum($employee['days'])
+            ];
+            
+            // Add day columns
+            $daysInMonth = cal_days_in_month(CAL_GREGORIAN, $employee['month'], $employee['year']);
+            for ($i = 1; $i <= $daysInMonth; $i++) {
+                $record["day_$i"] = $employee['days'][$i] ?? 0;
+            }
+            
+            $data[] = $record;
+        }
+        
+        return $data;
+    }
+
+    /**
      * Post working day data (update status to posted)
      */
     public function posted(Request $request)
@@ -671,6 +616,65 @@ class WorkingDayController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to post working day data: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Delete working day data (remove from fwd_hdr and fwd_dtl)
+     */
+    public function destroy(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'transNo' => 'required|string|max:50'
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation failed',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            // Check if record exists
+            $record = DB::table('fwd_hdr')->where('transNo', $request->transNo)->first();
+            if (!$record) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Transaction not found'
+                ], 404);
+            }
+
+            // Check if record is already posted (cannot delete posted records)
+            if ($record->status_record_id == 2) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Cannot delete posted transaction'
+                ], 400);
+            }
+
+            DB::beginTransaction();
+
+            // Delete detail records first (foreign key constraint)
+            DB::table('fwd_dtl')->where('transNo', $request->transNo)->delete();
+
+            // Delete header record
+            DB::table('fwd_hdr')->where('transNo', $request->transNo)->delete();
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Working day data deleted successfully'
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to delete working day data: ' . $e->getMessage()
             ], 500);
         }
     }
