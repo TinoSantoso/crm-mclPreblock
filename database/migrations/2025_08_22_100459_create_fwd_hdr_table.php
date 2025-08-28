@@ -18,7 +18,7 @@ return new class extends Migration
             $table->date('period')->nullable();
             $table->string('area', 50)->nullable();
             $table->string('remark', 255)->nullable();
-            $table->boolean('is_posted')->default(false);
+            $table->tinyInteger('status_record_id')->default(1);
             $table->timestamps();
         });
     }

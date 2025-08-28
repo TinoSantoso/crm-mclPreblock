@@ -69,9 +69,13 @@ $router->group(['prefix' => 'api', 'middleware' => ['session.token']], function 
     Route::get('/report-customer', 'Backend\ReportSalesDistrictController@index');
     Route::post('/report-customer-export', 'Backend\ReportSalesDistrictController@exportByCustomer');
     
-    Route::get('/actual-working-day', 'Backend\WorkingDayController@index');
-    Route::get('/actual-working-day/data', 'Backend\WorkingDayController@getData');
-    Route::post('/actual-working-day/update-adjustment', 'Backend\WorkingDayController@updateAdjustment');
-    Route::get('/actual-working-day/generate-transno', 'Backend\WorkingDayController@generateTransNo');
+    $router->get('/actual-working-day', 'Backend\WorkingDayController@index');
+    $router->get('/actual-working-day/data', 'Backend\WorkingDayController@getData');
+    $router->post('/actual-working-day/store', 'Backend\WorkingDayController@store');
+    $router->put('/actual-working-day/update', 'Backend\WorkingDayController@update');
+    $router->post('/actual-working-day/posted', 'Backend\WorkingDayController@posted');
+    $router->post('/actual-working-day/update-adjustment', 'Backend\WorkingDayController@updateAdjustment');
+    $router->get('/actual-working-day/generate-transno', 'Backend\WorkingDayController@generateTransNo');
+    $router->get('/actual-working-day/fwd-list[/{transNo}]', 'Backend\WorkingDayController@getFwdList');
 
 });

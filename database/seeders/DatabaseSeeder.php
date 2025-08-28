@@ -22,6 +22,7 @@ class DatabaseSeeder extends Seeder
             FwdDistrictAreasSeeder::class,
             DimPeriodSeeder::class,
             FwdCrmVisitsSeeder::class,
+            FwdPeriodSeeder::class,
         ]);
     }
 }
