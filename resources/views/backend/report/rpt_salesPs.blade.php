@@ -40,6 +40,7 @@
                           <div id="exportByDistrict" style="margin-top:10px; display: inline-block; margin-left: 10px;"></div>
                         </div>
                         <div id="autoExpand" style="margin-top:10px"></div>
+                        <div id="exportLoadingPanel"></div>
                         <div id="gridContainer" style="padding-top:20px"></div>
 
                     </div>
@@ -58,7 +59,7 @@
                 const areaOptions = [
                   "Northern Sumatra",
                   "Bali Nusra",
-                  "Easter Jakarta",
+                  "Eastern Jakarta",
                   "Ecommerce",
                   "Far East",
                   "Kalimantan",

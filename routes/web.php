@@ -74,9 +74,10 @@ $router->group(['prefix' => 'api', 'middleware' => ['session.token']], function 
     $router->post('/actual-working-day/store', 'Backend\WorkingDayController@store');
     $router->put('/actual-working-day/update', 'Backend\WorkingDayController@update');
     $router->post('/actual-working-day/posted', 'Backend\WorkingDayController@posted');
-    $router->post('/actual-working-day/update-adjustment', 'Backend\WorkingDayController@updateAdjustment');
     $router->get('/actual-working-day/generate-transno', 'Backend\WorkingDayController@generateTransNo');
     $router->get('/actual-working-day/fwd-list[/{transNo}]', 'Backend\WorkingDayController@getFwdList');
     $router->delete('/actual-working-day/destroy', 'Backend\WorkingDayController@destroy');
+
+    $router->get('/working-day-report', 'Backend\WorkingDayController@report');
 
 });

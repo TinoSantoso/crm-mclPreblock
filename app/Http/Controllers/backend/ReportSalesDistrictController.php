@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\File;
 use Maatwebsite\Excel\Facades\Excel;
 use ZipArchive;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\DB;
 
 class ReportSalesDistrictController extends Controller
 {
@@ -34,15 +35,16 @@ class ReportSalesDistrictController extends Controller
         $period = $input['period'] ?? null;
         $districts = $input['districts'] ?? [];
 
-        $baseQuery = \App\Models\SalesCustomerReport::query();  //change to real datasource
+        $baseQuery = DB::table('sales_customer_reports');
         if ($period) {
             $baseQuery->where('period_month', date('m', strtotime($period)))
               ->where('period_year', date('Y', strtotime($period)));
         }
+        
         if (!empty($districts)) {
-            $baseQuery->whereIn('distName', $districts);
+            $baseQuery->whereIn('areaName', $districts);
         }
-
+        
         $areaNames = (clone $baseQuery)->groupBy('areaName')->pluck('areaName');
         if ($areaNames->isEmpty()) {
             return response()->json([
@@ -69,7 +71,9 @@ class ReportSalesDistrictController extends Controller
         try {
             foreach ($areaNames as $areaName) {
                 // Clone the base query again for each area
-                $areaQuery = (clone $baseQuery)->where('areaName', $areaName);
+                $areaQuery = (clone $baseQuery)->where('areaName', $areaName)
+                    ->orderBy('custName')
+                    ->orderBy('prod_name');
 
                 // Get the last date of the period month
                 $lastDate = $period ? date('t-m-Y', strtotime($period . '-01')) : 'all-time';
@@ -79,7 +83,7 @@ class ReportSalesDistrictController extends Controller
                 
                 $storePath = 'temp_exports/' . basename($tempExportPath) . '/' . $excelFileName;
 
-                // Use your existing SalesReportsExport class to create and store the file
+                // Use existing SalesReportsExport class to create and store the file
                 Excel::store(
                     new \App\Exports\SalesReportsExport($areaQuery),
                     $storePath

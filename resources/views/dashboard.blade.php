@@ -83,7 +83,7 @@
                 </div>
 
                 <!-- Second Row -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <!-- Report Customer Card -->
                     <div id="reportCustomerButton" class="bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 cursor-pointer overflow-hidden">
                         <div class="bg-purple-600 p-4">
@@ -106,6 +106,19 @@
                             <p class="text-gray-600">Manage your working schedule</p>
                             <div class="mt-4 text-orange-600">
                                 <span class="font-medium">Schedule Now →</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Working Day Report Card -->
+                    <div id="workingDayReportButton" class="bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 cursor-pointer overflow-hidden">
+                        <div class="bg-teal-600 p-4">
+                            <h3 class="text-white text-xl font-semibold">Working Day Report</h3>
+                        </div>
+                        <div class="p-4">
+                            <p class="text-gray-600">View working day reports and analytics</p>
+                            <div class="mt-4 text-teal-600">
+                                <span class="font-medium">View Report →</span>
                             </div>
                         </div>
                     </div>
@@ -293,6 +306,11 @@
 
         document.getElementById('workingDayButton').addEventListener('click', () => {
             handleTokenAndRedirect(`${APP_BASE_URL}/api/actual-working-day`, 'Working Day');
+        });
+
+        // Working Day Report button handler
+        document.getElementById('workingDayReportButton').addEventListener('click', () => {
+            handleTokenAndRedirect(`${APP_BASE_URL}/api/working-day-report`, 'Working Day Report');
         });
     </script>
 </body>

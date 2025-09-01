@@ -679,4 +679,15 @@ class WorkingDayController extends Controller
         }
     }
 
+    /**
+     * Display the working day report view.
+     *
+     * @return \Illuminate\View\View
+     */
+    public function report()
+    {
+        $districtAreas = FwdDistrictArea::getAreasForSelect();
+        return view('backend.report.working_day_report', compact('districtAreas'));
+    }
+
 }

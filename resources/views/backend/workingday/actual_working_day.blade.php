@@ -1035,6 +1035,103 @@
                 return;
             }
 
+            const grid = $("#workingday-grid").dxDataGrid("instance");
+            const baseColumns = [
+                {
+                    dataField: "area",
+                    caption: "Area",
+                    allowEditing: false,
+                    fixed: true
+                },
+                { 
+                    dataField: "employee_name", 
+                    caption: "Employee Name",
+                    allowEditing: false,
+                    fixed: true
+                },
+                {
+                    dataField: "",
+                    caption: "Final Working Days",
+                    dataType: "number",
+                    alignment: "left",
+                    allowEditing: false,
+                    fixed: true,
+                    calculateCellValue: function(rowData) {
+                        const standardWorkingDays = rowData.standard_working_days || 0;
+                        const grandTotal = rowData.final_total_visits || 0;
+                        const otherDays = rowData.other_days || 0;
+                        const asmAdjustment = rowData.asm_adjustment || 0;
+                        const workingDaysWithAdjustment = grandTotal + otherDays + asmAdjustment;
+                        
+                        return Math.min(standardWorkingDays, workingDaysWithAdjustment);
+                    }
+                },
+                {
+                    dataField: "standard_working_days",
+                    caption: "Standard Working Days",
+                    dataType: "number",
+                    alignment: "left",
+                    allowEditing: false,
+                    fixed: true,
+                },
+                {
+                    dataField: "",
+                    caption: "Working Days with Adjustment",
+                    dataType: "number",
+                    alignment: "left",
+                    allowEditing: false,
+                    fixed: true,
+                    calculateCellValue: function(rowData) {
+                        const grandTotal = rowData.final_total_visits || 0;
+                        const otherDays = rowData.other_days || 0;
+                        const asmAdjustment = rowData.asm_adjustment || 0;
+                        return grandTotal + otherDays + asmAdjustment;
+                    }
+                },
+                {
+                    dataField: "asm_adjustment",
+                    caption: "Adjustment from ASM",
+                    dataType: "number",
+                    alignment: "left",
+                    fixed: true,
+                    allowEditing: true,
+                    validationRules: [{
+                        type: "numeric"
+                    }],
+                    headerCellTemplate: function(header, info) {
+                        header.append('<div style="background-color: #f8d7da; font-weight: bold;">' + info.column.caption + '</div>');
+                    }
+                },
+                {
+                    dataField: "note",
+                    caption: "Note Adjustment",
+                    fixed: true,
+                    allowEditing: true,
+                    headerCellTemplate: function(header, info) {
+                        header.append('<div style="background-color: #f8d7da; font-weight: bold;">' + info.column.caption + '</div>');
+                    }
+                },
+                {
+                    dataField: "other_days",
+                    caption: "BR/Training/Event",
+                    dataType: "number",
+                    alignment: "left",
+                    allowEditing: false,
+                    fixed: true,
+                    calculateCellValue: function() {
+                        return 3;
+                    }
+                },
+                {
+                    dataField: "final_total_visits",
+                    caption: "Grand Total",
+                    dataType: "number",
+                    alignment: "left",
+                    allowEditing: false,
+                    fixed: true
+                }
+            ];
+
             bootbox.confirm({
                 title: "Delete Confirmation",
                 message: `Are you sure you want to delete transaction <strong>${formData.fwdTransaction}</strong>?<br><br>This action cannot be undone.`,
@@ -1074,6 +1171,8 @@
                                     
                                     // Reset form state after deletion
                                     resetFormState();
+                                    grid.option("columns", baseColumns);
+                                    grid.option("dataSource", []);
                                 } else {
                                     DevExpress.ui.notify({ 
                                         message: res.message || 'Failed to delete working day data', 
