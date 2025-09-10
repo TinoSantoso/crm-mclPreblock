@@ -101,15 +101,59 @@
                         {
                             dataField: "district",
                             label: { text: "District" },
-                            editorType: "dxTagBox",
+                            editorType: "dxDropDownBox",
                             isRequired: false,
+                            validationRules: [
+                                {
+                                    type: "custom",
+                                    message: "Please select at least one district",
+                                    validationCallback: function(e) {
+                                        return Array.isArray(e.value) && e.value.length > 0;
+                                    }
+                                }
+                            ],
                             editorOptions: {
+                                width: "20vw",
                                 placeholder: "Select District(s)",
+                                displayExpr: function(items) {
+                                    if (Array.isArray(items)) {
+                                        return items.join(", ");
+                                    }
+                                    return items || "";
+                                },
+                                valueExpr: "this",
+                                showClearButton: true,
                                 dataSource: areaOptions,
-                                showSelectionControls: true,
-                                showMultiTagOnly: false,
-                                selectAllMode: "allPages",
-                                width: "20vw"
+                                onOpened: function(ev) {
+                                    const current = ev.component.option("value") || [];
+                                    const grid = ev.component.content().find(".dx-datagrid").dxDataGrid("instance");
+                                    if (grid) {
+                                        grid.selectRows(current, false);
+                                    }
+                                },
+                                contentTemplate: function(e) {
+                                    const initial = e.component.option("value") || [];
+                                    const $dataGrid = $("<div>").dxDataGrid({
+                                        dataSource: e.component.option("dataSource"),
+                                        columns: [{ dataField: "this", caption: "Select All" }],
+                                        hoverStateEnabled: true,
+                                        paging: { enabled: true, pageSize: 10 },
+                                        scrolling: { mode: "virtual" },
+                                        height: 250,
+                                        selection: { mode: "multiple" },
+                                        selectedRowKeys: initial,
+                                        onSelectionChanged: function(selectedItems) {
+                                            const keys = selectedItems.selectedRowKeys || [];
+                                            e.component.option("value", keys);
+                                        }
+                                    });
+                                    const gridInstance = $dataGrid.dxDataGrid("instance");
+                                    e.component.on("valueChanged", function(args) {
+                                        const vals = Array.isArray(args.value) ? args.value : [];
+                                        gridInstance.selectRows(vals, false);
+                                    });
+                                    return $dataGrid;
+                                }
                             }
                         }
                     ]
@@ -131,7 +175,8 @@
                     var formInstance = $("#filterForm").dxForm("instance");
                     var formData = formInstance.option("formData");
                     var prd = new Date(formData.period);
-                    var districts = formData.district;
+                    var districtEditor = formInstance.getEditor("district");
+                    var districts = districtEditor ? (districtEditor.option("value") || []) : [];
 
                     $.ajaxSetup({
                         headers: {
@@ -178,9 +223,31 @@
               onClick: async function(e) {
                 const exportUrl = `${APP_BASE_URL}/report-customer-export`;
                 const formInstance = $("#filterForm").dxForm("instance");
+                const validation = formInstance.validate();
+                if (!validation.isValid) {
+                  DevExpress.ui.notify({
+                    message: "Please select at least one district",
+                    type: "warning",
+                    width: 450,
+                    displayTime: 3000,
+                    position: { my: "right top", at: "right top" }
+                  });
+                  return;
+                }
                 const formData = formInstance.option("formData");
                 const prd = new Date(formData.period);
-                const districts = formData.district;
+                const districtEditor = formInstance.getEditor("district");
+                const districts = districtEditor ? (districtEditor.option("value") || []) : [];
+                if (!Array.isArray(districts) || districts.length === 0) {
+                  DevExpress.ui.notify({
+                    message: "Please select at least one district",
+                    type: "warning",
+                    width: 450,
+                    displayTime: 3000,
+                    position: { my: "right top", at: "right top" }
+                  });
+                  return;
+                }
                 const postData = {
                   period: prd.toISOString().slice(0, 10),
                   districts
